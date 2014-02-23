@@ -7,13 +7,34 @@
 //
 
 #import "AppDelegate.h"
-
+#import "HpCViewController.h"
+#import "C_N_ViewController.h"
+#import "Q_N_ViewController.h"
+#import "ThingsViewController.h"
+#import "PersonalViewController.h"
+#import "CustomTabBarViewController.h"
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
+    HpCViewController * hp_Ctl=[[HpCViewController alloc] init];
+    C_N_ViewController * c_Ctl=[[C_N_ViewController alloc] init];
+    Q_N_ViewController * q_Ctl=[[Q_N_ViewController alloc] init];
+    ThingsViewController * things=[[ThingsViewController alloc] init];
+    PersonalViewController * personal=[[PersonalViewController alloc] init];
+    UINavigationController * hp_Nav=[[UINavigationController alloc] initWithRootViewController:hp_Ctl];
+    UINavigationController * c_Nav=[[UINavigationController alloc] initWithRootViewController:c_Ctl];
+    UINavigationController * q_Nav=[[UINavigationController alloc] initWithRootViewController:q_Ctl];
+    UINavigationController * th_Nav=[[UINavigationController alloc] initWithRootViewController:things];
+    UINavigationController * per_Nav=[[UINavigationController alloc] initWithRootViewController:personal];
+    hp_Nav.navigationBar.translucent=NO;
+//    c_Nav.navigationBar.translucent=NO;
+    CustomTabBarViewController * root=[[CustomTabBarViewController alloc] init];
+//    root.tabBar.translucent=NO;
+    root.viewControllers=@[hp_Nav,c_Nav,q_Nav,th_Nav,per_Nav];
+    self.window.rootViewController=root;
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
     return YES;
