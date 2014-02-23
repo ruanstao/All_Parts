@@ -10,7 +10,7 @@
 #import "NJKScrollFullScreen.h"
 #import "EGORefreshTableHeaderView.h"
 #import "ASIHTTPRequest.h"
-@interface C_N_ViewController : UIViewController<NJKScrollFullscreenDelegate,EGORefreshTableHeaderDelegate,UIScrollViewDelegate,ASIHTTPRequestDelegate>
+@interface C_N_ViewController : UIViewController
 
 @property (nonatomic,strong) NSMutableArray * lisCon;
 @end

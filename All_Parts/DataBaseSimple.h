@@ -20,6 +20,7 @@
 -(NSString *) getOnePost;
 - (BOOL)insertDataForTableName:(NSString *)name with:(NSDictionary*)dic;
 - (BOOL) insertOnePost:(NSString*) str;
+-(NSArray *) getDataFromAllThings;
 //- (BOOL)deleteDataWithKey:(NSInteger)index;
 //- (BOOL)updataDataWithkey:(NSInteger)index andModifyData:(NewsModel *)model;
 //- (NSMutableArray *)selectFromDataBase:(NSString *)name;

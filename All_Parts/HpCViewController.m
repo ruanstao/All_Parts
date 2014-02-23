@@ -240,7 +240,8 @@
     for (int i = 0; i<10; i++) {
         Hp_C_View * v= (Hp_C_View *)[self.view viewWithTag:100+i];
         v.row=i+1;
-        v.strHpId=_lstHp[i];
+//        v.strHpId=_lstHp[i];
+        [v setData];
     }
 }
 

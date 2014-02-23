@@ -7,9 +7,10 @@
 //
 
 #import "Hp_C_View.h"
+#import "MBProgressHUD.h"
 #define HPURL @"http://bea.wufazhuce.com:7001/OneForWeb/one/getHp_N?strDate=%@&strRow=%d"
 //2014-02-18  4
-@interface Hp_C_View()
+@interface Hp_C_View()<MBProgressHUDDelegate>
 @property (weak, nonatomic) IBOutlet UILabel *strHpTitle;
 @property (weak, nonatomic) IBOutlet UIImageView *strOriginalImg;
 @property (weak, nonatomic) IBOutlet UILabel *strAuthor;
@@ -22,6 +23,7 @@
 {
     DataBaseSimple * _simple;
     ASIHTTPRequest * _request;
+    MBProgressHUD * _hud;
 }
 - (id)initWithFrame:(CGRect)frame
 {
@@ -32,11 +34,24 @@
     }
     return self;
 }
--(void) setStrHpId:(StrContentId *)strHpId
+-(id) initWithCoder:(NSCoder *)aDecoder
+{
+    self=[super initWithCoder:aDecoder];
+    if (self) {
+        _hud = [[MBProgressHUD alloc] initWithView:self];
+        _hud.delegate =self;
+        _hud.labelText = @"努力的加载中...";
+        _hud.center =CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
+        [self addSubview:_hud];
+    }
+    return self;
+}
+-(void) setData;
 {
     _simple=[DataBaseSimple sharedDataBase];
     NSDictionary * dic=[_simple getFromDataBaseFromTableName:@"all_homepage" withMarketTime:[_simple getDateForYestoday:(double)(_row-1)]];
     if (dic == nil) {
+        [self startAnimation];
         NSString *strUrl=[NSString stringWithFormat:HPURL,[_simple getDate],_row];
 //        NSLog(@"%@",strUrl);
         _request=[ASIHTTPRequest requestWithURL:[NSURL URLWithString:strUrl]];
@@ -49,6 +64,7 @@
         [self setContentText:[dic objectForKey:@"content"]];
         [self setTime:[dic objectForKey:@"markettime"]];
         [self setImage:[dic objectForKey:@"img_url"]];
+        [self stopAnimation];
     }
 }
 -(void) setTime:(NSString *)str
@@ -103,7 +119,7 @@
     }else{
         NSLog(@"%@ ASI error",[self class]);
     }
-
+    [self setData];
 }
 -(void) requestFailed:(ASIHTTPRequest *)request
 {
@@ -128,5 +144,20 @@
 //    "strPn": "6",
 //    "strThumbnailUrl": "http://pic.yupoo.com/hanapp/Dy83BPCX/tcK8O.jpg"
 //}
+#pragma mark -- MBProgressHUDDelegate
 
+#pragma mark - MBP Method
+- (void) startAnimation
+{
+	[_hud show:YES];
+	UIApplication *application = [UIApplication sharedApplication];
+	application.networkActivityIndicatorVisible = YES;
+}
+
+- (void) stopAnimation
+{
+	[_hud hide:YES];
+	UIApplication *application = [UIApplication sharedApplication];
+	application.networkActivityIndicatorVisible = NO;
+}
 @end

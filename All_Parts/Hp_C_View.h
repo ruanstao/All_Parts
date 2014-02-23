@@ -16,6 +16,7 @@
 
 @property (nonatomic,strong) StrContentId * strHpId;
 @property (nonatomic,assign) NSInteger row;
+-(void) setData;
 @end
 //    "result": "SUCCESS",
 //    "hpEntity": {

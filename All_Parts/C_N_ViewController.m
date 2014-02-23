@@ -10,7 +10,7 @@
 #import "UIViewController+NJKFullScreenSupport.h"
 #import "CN_View.h"
 #import "DataBaseSimple.h"
-@interface C_N_ViewController ()
+@interface C_N_ViewController ()<NJKScrollFullscreenDelegate,EGORefreshTableHeaderDelegate,UIScrollViewDelegate,ASIHTTPRequestDelegate,UIActionSheetDelegate>
 @property (weak, nonatomic) IBOutlet UIScrollView *refreshScrollView;
 @property (nonatomic) NJKScrollFullScreen *scrollProxy;
 
@@ -95,10 +95,7 @@
 //    }
     
 }
--(void) rightBarButton
-{
-    
-}
+
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
@@ -222,6 +219,41 @@
     for (int i = 0; i<10; i++) {
         CN_View * v= (CN_View *)[self.view viewWithTag:100+i];
         [v setData];
+    }
+}
+-(void) rightBarButton
+{
+    UIActionSheet * sheet=[[UIActionSheet alloc] initWithTitle:@"ALL_PARTS"delegate:self cancelButtonTitle:@"返回" destructiveButtonTitle:@"分享" otherButtonTitles:@"添加到收藏", nil];
+    [sheet showInView:self.view];
+}
+#pragma mark - UIActionSheetDelegate
+-(void) actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    switch (buttonIndex) {
+            //分享
+        case 0:{
+            
+        }
+            break;
+            //添加收藏
+        case 1:{
+            _simple=[DataBaseSimple sharedDataBase];
+            int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
+            CN_View * v=(CN_View*)[self.view viewWithTag:100+currentpage];
+            NSMutableDictionary * dic=[NSMutableDictionary dictionary];
+            [dic setObject: v.contTitle.text forKey:@"title"];
+            [dic setObject: [_simple getDate] forKey:@"markettime"];
+            [dic setObject: v.conId forKey:@"id"];
+            [dic setObject:@"all_content" forKey:@"tablename"];
+            [_simple insertDataForTableName:@"all_things" with:dic];
+        }
+            break;
+        case 2:{
+            
+        }
+            break;
+        default:
+            break;
     }
 }
 @end

@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ThingsViewController : UIViewController
+@interface ThingsViewController : UIViewController<UITableViewDelegate,UITableViewDataSource>
 @property(nonatomic,strong) NSMutableArray * lstThing;
 @end

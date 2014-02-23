@@ -72,9 +72,9 @@
                 <outlet property="_contAuthor" destination="pEJ-Oq-leH" id="7K2-7R-GLU"/>
                 <outlet property="_contAuthorDesc" destination="5Rn-e4-lor" id="xZ5-nU-gsu"/>
                 <outlet property="_contAuthorIntroduce" destination="sV5-4f-YL5" id="0D9-p5-1xV"/>
-                <outlet property="_contTitle" destination="X80-Pn-88B" id="HNf-sT-4tM"/>
                 <outlet property="_content" destination="qpc-Ry-E7B" id="mXu-a9-4e2"/>
                 <outlet property="_dayDate" destination="HZi-nq-V9R" id="ffa-Ad-Vzj"/>
+                <outlet property="contTitle" destination="X80-Pn-88B" id="meu-9n-AA1"/>
                 <outlet property="scrollView" destination="6fb-rT-8lN" id="qRr-Rd-gpi"/>
             </connections>
         </view>

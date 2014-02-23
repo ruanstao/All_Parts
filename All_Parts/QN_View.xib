@@ -80,8 +80,8 @@
                 <outlet property="_dayDate" destination="f4G-Ir-058" id="hhJ-ir-iNc"/>
                 <outlet property="_offLine" destination="ZD8-Xl-M11" id="QC2-3v-eZF"/>
                 <outlet property="_questionContent" destination="GRF-VE-B6J" id="sxo-33-bad"/>
-                <outlet property="_questionTitle" destination="iZN-Mg-rZH" id="ZUb-HL-hyM"/>
                 <outlet property="answerImage" destination="kgD-LA-qTn" id="wHT-sN-gDb"/>
+                <outlet property="questionTitle" destination="iZN-Mg-rZH" id="Bos-No-rNY"/>
                 <outlet property="scrollView" destination="06o-IT-zFu" id="1tZ-g3-zGW"/>
             </connections>
         </view>

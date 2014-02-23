@@ -51,6 +51,7 @@ static DataBaseSimple * simple = nil;
         [_dataBase executeUpdate:@"CREATE TABLE if not exists onepost(serial integer PRIMARY KEY AUTOINCREMENT,post text)"];
         [_dataBase executeUpdate:@"CREATE TABLE if not exists all_content (id text PRIMARY KEY,conttitle text,contauthor text,content text,contauthorintroduce text,sauth text,sgw text,swbn text,sweblk text,contmarkettime text,lastupdatedate text,praisenumber text)"];
         [_dataBase executeUpdate:@"CREATE TABLE if not exists all_question (id text PRIMARY KEY,questiontitle text,questioncontent text,answertitle text,answercontent text,markettime text,sweblk text,praisenumber text,lastupdatedate text)"];
+        [_dataBase executeUpdate:@"CREATE TABLE if not exists all_things(id text PRIMARY KEY ,tablename text,title text ,markettime text)"];
     }
     return self;
 }
@@ -117,6 +118,20 @@ static DataBaseSimple * simple = nil;
     }
     return nil;
 }
+-(NSArray *) getDataFromAllThings
+{
+    NSMutableArray * arr=[NSMutableArray array];
+    FMResultSet * rs=[_dataBase executeQuery:@"select * from all_things"];
+    while ([rs next]) {
+        NSMutableDictionary * dic=[NSMutableDictionary dictionary];
+        [dic setObject:[rs stringForColumn:@"id"] forKey:@"id"];
+        [dic setObject:[rs stringForColumn:@"tablename"] forKey:@"tablename"];
+        [dic setObject:[rs stringForColumn:@"markettime"] forKey:@"markettime"];
+        [dic setObject:[rs stringForColumn:@"title"] forKey:@"title"];
+        [arr addObject:dic];
+    }
+    return arr;
+}
 - (NSString *) getDate
 {
     NSDateFormatter * formatter=[[NSDateFormatter alloc]init];
@@ -162,17 +177,23 @@ static DataBaseSimple * simple = nil;
                 [dic objectForKey:@"strPraiseNumber"]];
     }
     else if ([name isEqualToString:@"all_question"]){
-        return [_dataBase executeUpdate:@"INSERT IN all_question (id,questiontitle,questioncontent,answertitle,answercontent,markettime,sweblk,praisenumber,lastupdatedate)",
+        return [_dataBase executeUpdate:@"INSERT INTO all_question (id,questiontitle,questioncontent,answertitle,answercontent,markettime,sweblk,praisenumber,lastupdatedate) VALUES (?,?,?,?,?,?,?,?,?)",
                 [dic objectForKey:@"strQuestionId"],
                 [dic objectForKey:@"strQuestionTitle"],
                 [dic objectForKey:@"strQuestionContent"],
                 [dic objectForKey:@"strAnswerTitle"],
-                [dic objectForKey:@"strQuestionId"],
                 [dic objectForKey:@"strAnswerContent"],
                 [dic objectForKey:@"strQuestionMarketTime"],
                 [dic objectForKey:@"sWebLk"],
                 [dic objectForKey:@"strPraiseNumber"],
                 [dic objectForKey:@"strLastUpdateDate"]];
+    }
+    else if ([name isEqualToString:@"all_things"]){
+        return [_dataBase executeUpdate:@"INSERT INTO all_things (id,title,markettime,tablename) VALUES (?,?,?,?)",
+                [dic objectForKey:@"id"],
+                [dic objectForKey:@"title"],
+                [dic objectForKey:@"markettime"],
+                [dic objectForKey:@"tablename"]];
     }
     return NO;
 }

@@ -26,7 +26,9 @@
 #import "StrContentId.h"
 @interface CN_View : UIView<ASIHTTPRequestDelegate>
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+@property (weak, nonatomic) IBOutlet UILabel *contTitle;
 @property( nonatomic,strong) StrContentId * strContentId;
 @property (nonatomic,assign) NSInteger row;
+@property (nonatomic,strong) NSString * conId;
 -(void) setData;
 @end

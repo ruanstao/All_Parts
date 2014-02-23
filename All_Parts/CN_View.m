@@ -9,16 +9,17 @@
 #import "CN_View.h"
 #import "DataBaseSimple.h"
 #import "NSString+SBJSON.h"
+#import "MBProgressHUD.h"
 #define CNURL @"http://bea.wufazhuce.com:7001/OneForWeb/one/getC_N?strDate=%@&strRow=%d"
-@interface CN_View()
+@interface CN_View()<MBProgressHUDDelegate>
 
 @end
 @implementation CN_View
 {
     DataBaseSimple * _simple;
     ASIHTTPRequest * _request;
+    MBProgressHUD * _hud;
     __weak IBOutlet UILabel *_dayDate;
-    __weak IBOutlet UILabel *_contTitle;
     __weak IBOutlet UILabel *_contAuthor;
     __weak IBOutlet UILabel *_content;
     __weak IBOutlet UILabel *_contAuthorIntroduce;
@@ -36,7 +37,11 @@
     self = [super initWithCoder:aDecoder];
     if (self) {
         // Initialization code
-        
+        _hud=[[MBProgressHUD alloc] initWithView:self];
+        _hud.delegate=self;
+        _hud.labelText=@"努力的加载中……";
+        _hud.center =CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
+        [self addSubview:_hud];
     }
     return self;
 }
@@ -45,6 +50,7 @@
     _simple=[DataBaseSimple sharedDataBase];
     NSDictionary * dic=[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:[_simple getDateForYestoday:(double)(_row-1)]];
     if (dic == nil) {
+        [self startAnimation];
         NSString *strUrl=[NSString stringWithFormat:CNURL,[_simple getDate],_row];
 //       NSLog(@"%@----%@",[_simple getDateForYestoday:(double)(_row-1)],strUrl);
         _request=[ASIHTTPRequest requestWithURL:[NSURL URLWithString:strUrl]];
@@ -52,6 +58,7 @@
         [_request startAsynchronous];
     }else{
 //        NSLog(@"%@",dic);
+        _conId=[dic objectForKey:@"id"];
         _contTitle.text=[dic objectForKey:@"conttitle"];
         _contAuthor.text=[dic objectForKey:@"contauthor"];
         _contAuthorIntroduce.text=[dic objectForKey:@"contauthorintroduce"];
@@ -109,6 +116,7 @@
 
     _scrollView.contentSize=CGSizeMake(_scrollView.frame.size.width, s.height+_contAuthorIntroduce.frame.size.height+_contAuthorDesc.frame.size.height +300);
     }
+    [self stopAnimation];
 }
 //
 //    UIImage *img=_strContentBackView.image;
@@ -131,6 +139,7 @@
     if ([[dic objectForKey:@"result"] isEqualToString:@"SUCCESS"]) {
         _simple=[DataBaseSimple sharedDataBase];
         [_simple insertDataForTableName:@"all_content" with:[dic objectForKey:@"contentEntity"]];
+        [self setData];
     }else{
         NSLog(@"%@ ASI error",[self class]);
     }
@@ -174,7 +183,7 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         // 计算文本串的大小尺寸
     CGSize totalTextSize = [text sizeWithFont:_content.font
                                 constrainedToSize:CGSizeMake(_content.frame.size.width, MAXFLOAT) lineBreakMode:NSLineBreakByCharWrapping];
-    NSLog(@"%f---%f",totalTextSize.width,totalTextSize.height);
+//    NSLog(@"%f---%f",totalTextSize.width,totalTextSize.height);
     // 计算理想状态下的页面数量和每页所显示的字符数量，只是拿来作为参考值用而已！
     NSUInteger textLength = [text length];
     int referTotalPages = (int)totalTextSize.height/(int)_content.frame.size.height+1;
@@ -226,9 +235,15 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                     range.length = [pageText length];
                     break;
                 } else {
-                    range.length -= 2;
+                    range.length-=20;
+                    CGSize sss=[[text substringWithRange:range] sizeWithFont:_content.font constrainedToSize:CGSizeMake(_content.frame.size.width, MAXFLOAT)
+                lineBreakMode:NSLineBreakByCharWrapping];
+                    if (sss.height<=_content.frame.size.height) {
+                        range.length+=20;
                     }
+                    range.length -= 2;
                 }
+            }
                 
         // 得到一个页面的显示范围
         if (page >= maxPages) {
@@ -287,5 +302,19 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     // Drawing code
 }
 */
+#pragma mark - MBP Method
+- (void) startAnimation
+{
+	[_hud show:YES];
+	UIApplication *application = [UIApplication sharedApplication];
+	application.networkActivityIndicatorVisible = YES;
+}
+
+- (void) stopAnimation
+{
+	[_hud hide:YES];
+	UIApplication *application = [UIApplication sharedApplication];
+	application.networkActivityIndicatorVisible = NO;
+}
 
 @end

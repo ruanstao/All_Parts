@@ -9,9 +9,10 @@
 #import "Q_N_ViewController.h"
 #import "EGORefreshTableHeaderView.h"
 #import "NJKScrollFullScreen.h"
+#import "DataBaseSimple.h"
 #import "UIViewController+NJKFullScreenSupport.h"
 #import "QN_View.h"
-@interface Q_N_ViewController ()<EGORefreshTableHeaderDelegate,NJKScrollFullscreenDelegate,UIScrollViewDelegate>
+@interface Q_N_ViewController ()<EGORefreshTableHeaderDelegate,NJKScrollFullscreenDelegate,UIScrollViewDelegate,UIActionSheetDelegate>
 @property (weak, nonatomic) IBOutlet UIScrollView *refreshScrollView;
 @property (nonatomic) NJKScrollFullScreen *scrollProxy;
 @end
@@ -20,6 +21,7 @@
 {
     EGORefreshTableHeaderView* _pullRightRefreshView;
     BOOL _reloading;
+    DataBaseSimple * _simple;
 }
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -41,9 +43,9 @@
         v.tag=100+i;
         v.row=i+1;
         v.scrollView.delegate = (id)_scrollProxy;
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [v setData];
-        });
+//        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [v setData];
+//        });
         [_refreshScrollView addSubview:v];
         
     }
@@ -80,10 +82,6 @@
     
 }
 
--(void) rightBarButton
-{
-    
-}
 - (void)dealloc
 {
     _pullRightRefreshView = nil;
@@ -195,4 +193,40 @@
         [v setData];
     }
 }
+-(void) rightBarButton
+{
+    UIActionSheet * sheet=[[UIActionSheet alloc] initWithTitle:@"ALL_PARTS"delegate:self cancelButtonTitle:@"返回" destructiveButtonTitle:@"分享" otherButtonTitles:@"添加到收藏", nil];
+    [sheet showInView:self.view];
+}
+#pragma mark - UIActionSheetDelegate
+-(void) actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    switch (buttonIndex) {
+            //分享
+        case 0:{
+            
+        }
+            break;
+            //添加收藏
+        case 1:{
+            _simple=[DataBaseSimple sharedDataBase];
+            int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
+            QN_View * v=(QN_View*)[self.view viewWithTag:100+currentpage];
+            NSMutableDictionary * dic=[NSMutableDictionary dictionary];
+            [dic setObject: v.questionTitle.text forKey:@"title"];
+            [dic setObject: [_simple getDate] forKey:@"markettime"];
+            [dic setObject: v.qnId forKey:@"id"];
+            [dic setObject:@"all_question" forKey:@"tablename"];
+            [_simple insertDataForTableName:@"all_things" with:dic];
+        }
+            break;
+        case 2:{
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
 @end
