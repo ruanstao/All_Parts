@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-
+#import "SaveViewController.h"
 @interface ThingsViewController : UIViewController<UITableViewDelegate,UITableViewDataSource>
 @property(nonatomic,strong) NSMutableArray * lstThing;
+@property(nonatomic,strong) SaveViewController * save;
 @end

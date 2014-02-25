@@ -7,9 +7,11 @@
 //
 
 #import "CustomTabBarViewController.h"
+#import "AppDelegate.h"
+
+
 #define TabBarBackgroundImageViewTag 11111
 @interface CustomTabBarViewController ()
-
 @end
 
 @implementation CustomTabBarViewController

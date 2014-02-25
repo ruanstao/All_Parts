@@ -9,6 +9,10 @@
 //all_homepage
 
 #import "DataBaseSimple.h"
+#import "CNModel.h"
+#import "ThingsModel.h"
+#import "HpModel.h"
+#import "QNModel.h"
 static DataBaseSimple * simple = nil;
 
 @implementation DataBaseSimple
@@ -57,63 +61,71 @@ static DataBaseSimple * simple = nil;
 }
 
 
-- (NSDictionary*)getFromDataBaseFromTableName:(NSString*)name withMarketTime:(NSString *)time
+- (id)getFromDataBaseFromTableName:(NSString*)name withMarketTime:(NSString *)time
 {
     // 类似一个链表对象
     if ([name isEqualToString:@"all_homepage"]) {
          FMResultSet * rs = [_dataBase executeQuery:@"select * from all_homepage WHERE markettime=?",time];
          while ([rs next]) {
-             NSMutableDictionary * dic = [[NSMutableDictionary alloc] init];
-             [dic setObject:[rs stringForColumn:@"id"] forKey:@"id"];
-             [dic setObject:[rs stringForColumn:@"title"] forKey:@"title"];
-             [dic setObject:[rs stringForColumn:@"img_url"] forKey:@"img_url"];
-             [dic setObject:[rs stringForColumn:@"author"] forKey:@"author"];
-             [dic setObject:[rs stringForColumn:@"author_introduce"] forKey:@"author_introduce"];
-             [dic setObject:[rs stringForColumn:@"content"] forKey:@"content"];
-//             [dic setObject:[rs stringForColumn:@"laud_count"] forKey:@"laud_count"];
-//             [dic setObject:[rs stringForColumn:@"laud_flg"] forKey:@"laud_flg"];
-             [dic setObject:[rs stringForColumn:@"markettime"] forKey:@"markettime"];
-//             [dic setObject:[rs stringForColumn:@"differ"] forKey:@"differ"];
-//             [dic setObject:[rs stringForColumn:@"last_time"] forKey:@"last_time"];
-//             [dic setObject:[rs stringForColumn:@"shareUrl"] forKey:@"shareUrl"];
-//             [dic setObject:[rs stringForColumn:@"WxDesContent"] forKey:@"WxDesContent"];
-             [dic setObject:[rs stringForColumn:@"sWebLk"] forKey:@"sWebLk"];
-             return dic;
+             HpModel * mod=[[HpModel alloc] init];
+             mod.ID=[rs stringForColumn:@"id"];
+             mod.title=[rs stringForColumn:@"title"];
+             mod.img_url=[rs stringForColumn:@"img_url"];
+             mod.author=[rs stringForColumn:@"author"];
+             mod.author_introduce=[rs stringForColumn:@"author_introduce"];
+             mod.content=[rs stringForColumn:@"content"];
+             mod.markettime=[rs stringForColumn:@"markettime"];
+             mod.sWebLk=[rs stringForColumn:@"sWebLk"];
+             return mod;
          }
      }
     else if ([name isEqualToString:@"all_content"]){
          FMResultSet * rs = [_dataBase executeQuery:@"select * from all_content WHERE contmarkettime=?",time];
          while ([rs next]) {
-             NSMutableDictionary * dic = [[NSMutableDictionary alloc] init];
-             [dic setObject:[rs stringForColumn:@"id"] forKey:@"id"];
-             [dic setObject:[rs stringForColumn:@"conttitle"] forKey:@"conttitle"];
-             [dic setObject:[rs stringForColumn:@"contauthor"] forKey:@"contauthor"];
-             [dic setObject:[rs stringForColumn:@"content"] forKey:@"content"];
-             [dic setObject:[rs stringForColumn:@"contauthorintroduce"] forKey:@"contauthorintroduce"];
-             [dic setObject:[rs stringForColumn:@"sauth"] forKey:@"sauth"];
-             [dic setObject:[rs stringForColumn:@"sgw"] forKey:@"sgw"];
-             [dic setObject:[rs stringForColumn:@"swbn"] forKey:@"swbn"];
-             [dic setObject:[rs stringForColumn:@"sweblk"] forKey:@"sweblk"];
-             [dic setObject:[rs stringForColumn:@"contmarkettime"] forKey:@"contmarkettime"];
-             [dic setObject:[rs stringForColumn:@"lastupdatedate"] forKey:@"lastupdatedate"];
-             [dic setObject:[rs stringForColumn:@"praisenumber"] forKey:@"praisenumber"];
-             return dic;
+             CNModel * mod =[[CNModel alloc] init];
+             mod.ID=[rs stringForColumn:@"id"];
+             mod.conttitle=[rs stringForColumn:@"conttitle"];
+             mod.contauthor=[rs stringForColumn:@"contauthor"];
+             mod.content=[rs stringForColumn:@"content"];
+             mod.contauthorintroduce=[rs stringForColumn:@"contauthorintroduce"];
+             mod.sauth=[rs stringForColumn:@"sauth"];
+             mod.sgw=[rs stringForColumn:@"sgw"];
+             mod.swbn=[rs stringForColumn:@"swbn"];
+             mod.sweblk=[rs stringForColumn:@"sweblk"];
+             mod.contmarkettime=[rs stringForColumn:@"contmarkettime"];
+             mod.lastupdatedate=[rs stringForColumn:@"lastupdatedate"];
+             mod.praisenumber=[rs stringForColumn:@"praisenumber"];
+             return mod;
+//             NSMutableDictionary * dic = [[NSMutableDictionary alloc] init];
+//             [dic setObject:[rs stringForColumn:@"id"] forKey:@"id"];
+//             [dic setObject:[rs stringForColumn:@"conttitle"] forKey:@"conttitle"];
+//             [dic setObject:[rs stringForColumn:@"contauthor"] forKey:@"contauthor"];
+//             [dic setObject:[rs stringForColumn:@"content"] forKey:@"content"];
+//             [dic setObject:[rs stringForColumn:@"contauthorintroduce"] forKey:@"contauthorintroduce"];
+//             [dic setObject:[rs stringForColumn:@"sauth"] forKey:@"sauth"];
+//             [dic setObject:[rs stringForColumn:@"sgw"] forKey:@"sgw"];
+//             [dic setObject:[rs stringForColumn:@"swbn"] forKey:@"swbn"];
+//             [dic setObject:[rs stringForColumn:@"sweblk"] forKey:@"sweblk"];
+//             [dic setObject:[rs stringForColumn:@"contmarkettime"] forKey:@"contmarkettime"];
+//             [dic setObject:[rs stringForColumn:@"lastupdatedate"] forKey:@"lastupdatedate"];
+//             [dic setObject:[rs stringForColumn:@"praisenumber"] forKey:@"praisenumber"];
+//             return dic;
          }
      }
     else if ([name isEqualToString:@"all_question"]){
         FMResultSet * rs=[_dataBase executeQuery:@"select * from all_question WHERE markettime=?",time];
         while ([rs next]) {
-            NSMutableDictionary * dic=[[NSMutableDictionary alloc] init];
-            [dic setObject:[rs stringForColumn:@"id"] forKey:@"id"];
-            [dic setObject:[rs stringForColumn:@"questiontitle"] forKey:@"questiontitle"];
-            [dic setObject:[rs stringForColumn:@"questioncontent"] forKey:@"questioncontent"];
-            [dic setObject:[rs stringForColumn:@"answertitle"] forKey:@"answertitle"];
-            [dic setObject:[rs stringForColumn:@"answercontent"] forKey:@"answercontent"];
-            [dic setObject:[rs stringForColumn:@"markettime"] forKey:@"markettime"];
-            [dic setObject:[rs stringForColumn:@"sweblk"] forKey:@"sweblk"];
-            [dic setObject:[rs stringForColumn:@"praisenumber"] forKey:@"praisenumber"];
-            [dic setObject:[rs stringForColumn:@"lastupdatedate"] forKey:@"lastupdatedate"];
-            return dic;
+            QNModel * mod=[[QNModel alloc] init];
+            mod.ID=[rs stringForColumn:@"id"];
+            mod.questiontitle=[rs stringForColumn:@"questiontitle"];
+            mod.questioncontent=[rs stringForColumn:@"questioncontent"];
+            mod.answertitle=[rs stringForColumn:@"answertitle"];
+            mod.answercontent=[rs stringForColumn:@"answercontent"];
+            mod.markettime=[rs stringForColumn:@"markettime"];
+            mod.sweblk=[rs stringForColumn:@"sweblk"];
+            mod.praisenumber=[rs stringForColumn:@"praisenumber"];
+            mod.lastupdatedate=[rs stringForColumn:@"lastupdatedate"];
+            return mod;
         }
     }
     return nil;
@@ -123,12 +135,17 @@ static DataBaseSimple * simple = nil;
     NSMutableArray * arr=[NSMutableArray array];
     FMResultSet * rs=[_dataBase executeQuery:@"select * from all_things"];
     while ([rs next]) {
-        NSMutableDictionary * dic=[NSMutableDictionary dictionary];
-        [dic setObject:[rs stringForColumn:@"id"] forKey:@"id"];
-        [dic setObject:[rs stringForColumn:@"tablename"] forKey:@"tablename"];
-        [dic setObject:[rs stringForColumn:@"markettime"] forKey:@"markettime"];
-        [dic setObject:[rs stringForColumn:@"title"] forKey:@"title"];
-        [arr addObject:dic];
+//        NSMutableDictionary * dic=[NSMutableDictionary dictionary];
+        ThingsModel * model=[[ThingsModel alloc] init];
+        model.ID=[rs stringForColumn:@"id"];
+        model.tablename=[rs stringForColumn:@"tablename"];
+        model.markettime=[rs stringForColumn:@"markettime"];
+        model.title=[rs stringForColumn:@"title"];
+//        [dic setObject:[rs stringForColumn:@"id"] forKey:@"id"];
+//        [dic setObject:[rs stringForColumn:@"tablename"] forKey:@"tablename"];
+//        [dic setObject:[rs stringForColumn:@"markettime"] forKey:@"markettime"];
+//        [dic setObject:[rs stringForColumn:@"title"] forKey:@"title"];
+        [arr addObject:model];
     }
     return arr;
 }
@@ -151,7 +168,7 @@ static DataBaseSimple * simple = nil;
         NSRange range=[str rangeOfString:@"&"];
         NSString * author=[ str substringFromIndex:range.location+1];
         NSString *introduce=[str substringToIndex:range.location];
-        return [_dataBase executeUpdate:@"INSERT INTO all_homepage (id,Title,img_url,author,author_introduce,content,markettime,sWebLK) VALUES (?,?,?,?,?,?,?,?)",
+        return [_dataBase executeUpdate:@"INSERT INTO all_homepage (id,title,img_url,author,author_introduce,content,markettime,sWebLK) VALUES (?,?,?,?,?,?,?,?)",
                 [dic objectForKey:@"strHpId"],
                 [dic objectForKey:@"strHpTitle"],
                 [dic objectForKey:@"strOriginalImgUrl"],
@@ -211,7 +228,10 @@ static DataBaseSimple * simple = nil;
     return nil;
 //    return @"[{\"result\":\"ERROR\"}]";
 }
-
+- (BOOL)deleteDataWithID:(NSString *)ID
+{
+    return [_dataBase executeUpdate:@"DELETE FROM all_things WHERE id=?",ID];
+}
 //{CREATE TABLE if not exists all_homepage (id text,title text,img_url text,author text,author_introduce text,content text,laud_count text,laud_flg text,makettime text,differ text,last_time text,shareUrl text, WxDesContent text,sWebLk text)
 //    "sWebLk": "http://wufazhuce.com/one/vol.501",
 //    "strAuthor": "冰雕匠&摄影/安一然",

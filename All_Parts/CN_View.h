@@ -30,5 +30,7 @@
 @property( nonatomic,strong) StrContentId * strContentId;
 @property (nonatomic,assign) NSInteger row;
 @property (nonatomic,strong) NSString * conId;
+@property (nonatomic,strong) NSString * thingsTime;
 -(void) setData;
+-(void) setTimeData;
 @end

@@ -14,13 +14,14 @@
 // 获取数据库对象 - (void)openDataBase 该接口重写init方法
 + (DataBaseSimple *)sharedDataBase;
 
-- (NSDictionary*)getFromDataBaseFromTableName:(NSString*)name withMarketTime:(NSString *)time;
+- (id)getFromDataBaseFromTableName:(NSString*)name withMarketTime:(NSString *)time;
 - (NSString *) getDate;
 - (NSString *) getDateForYestoday:(double) day;
 -(NSString *) getOnePost;
 - (BOOL)insertDataForTableName:(NSString *)name with:(NSDictionary*)dic;
 - (BOOL) insertOnePost:(NSString*) str;
 -(NSArray *) getDataFromAllThings;
+- (BOOL)deleteDataWithID:(NSString *) ID;
 //- (BOOL)deleteDataWithKey:(NSInteger)index;
 //- (BOOL)updataDataWithkey:(NSInteger)index andModifyData:(NewsModel *)model;
 //- (NSMutableArray *)selectFromDataBase:(NSString *)name;

@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-
+#import "ThingsModel.h"
 @interface SaveViewController : UIViewController
-@property (nonatomic,strong) NSDictionary * dic;
+//@property (nonatomic,strong) NSDictionary * dic;
+@property (nonatomic,strong) ThingsModel * mod;
 @end

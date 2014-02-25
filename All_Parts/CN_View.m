@@ -10,6 +10,7 @@
 #import "DataBaseSimple.h"
 #import "NSString+SBJSON.h"
 #import "MBProgressHUD.h"
+#import "CNModel.h"
 #define CNURL @"http://bea.wufazhuce.com:7001/OneForWeb/one/getC_N?strDate=%@&strRow=%d"
 @interface CN_View()<MBProgressHUDDelegate>
 
@@ -46,25 +47,46 @@
     return self;
 }
 -(void) setData
-{
+{  [self startAnimation];
     _simple=[DataBaseSimple sharedDataBase];
-    NSDictionary * dic=[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:[_simple getDateForYestoday:(double)(_row-1)]];
-    if (dic == nil) {
-        [self startAnimation];
+    CNModel * mod =[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:[_simple getDateForYestoday:(double)(_row-1)]];
+    if (mod.ID == nil) {
         NSString *strUrl=[NSString stringWithFormat:CNURL,[_simple getDate],_row];
 //       NSLog(@"%@----%@",[_simple getDateForYestoday:(double)(_row-1)],strUrl);
         _request=[ASIHTTPRequest requestWithURL:[NSURL URLWithString:strUrl]];
+        _request.tag=33;
         _request.delegate=self;
         [_request startAsynchronous];
     }else{
 //        NSLog(@"%@",dic);
-        _conId=[dic objectForKey:@"id"];
-        _contTitle.text=[dic objectForKey:@"conttitle"];
-        _contAuthor.text=[dic objectForKey:@"contauthor"];
-        _contAuthorIntroduce.text=[dic objectForKey:@"contauthorintroduce"];
-        [self setContentText:[dic objectForKey:@"content"]];
-        [self setTime:[dic objectForKey:@"contmarkettime"]];
+        _conId=mod.ID;
+        _contTitle.text=mod.conttitle;
+        _contAuthor.text=mod.contauthor;
+        _contAuthorIntroduce.text=mod.contauthorintroduce;
+        [self setContentText:mod.content];
+        [self setTime:mod.contmarkettime];
 //        [self setImage:[dic objectForKey:@"img_url"]];
+    }
+}
+-(void) setTimeData
+{  _simple=[DataBaseSimple sharedDataBase];
+    CNModel * mod =[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:_thingsTime];
+    if (mod.ID == nil) {
+        NSString *strUrl=[NSString stringWithFormat:CNURL,[_simple getDate],_row];
+        //       NSLog(@"%@----%@",[_simple getDateForYestoday:(double)(_row-1)],strUrl);
+        _request=[ASIHTTPRequest requestWithURL:[NSURL URLWithString:strUrl]];
+        _request.tag=44;
+        _request.delegate=self;
+        [_request startAsynchronous];
+    }else{
+        //        NSLog(@"%@",dic);
+        _conId=mod.ID;
+        _contTitle.text=mod.conttitle;
+        _contAuthor.text=mod.contauthor;
+        _contAuthorIntroduce.text=mod.contauthorintroduce;
+        [self setContentText:mod.content];
+        [self setTime:mod.contmarkettime];
+        //        [self setImage:[dic objectForKey:@"img_url"]];
     }
 }
 -(void) setTime:(NSString *)str
@@ -139,10 +161,16 @@
     if ([[dic objectForKey:@"result"] isEqualToString:@"SUCCESS"]) {
         _simple=[DataBaseSimple sharedDataBase];
         [_simple insertDataForTableName:@"all_content" with:[dic objectForKey:@"contentEntity"]];
-        [self setData];
+       
     }else{
         NSLog(@"%@ ASI error",[self class]);
     }
+    if (request.tag==33) {
+        [self setData];
+    }else if(request.tag==44){
+        [self setTimeData];
+    }
+    
     [self reloadInputViews];
 }
 -(void) requestFailed:(ASIHTTPRequest *)request

@@ -14,14 +14,19 @@
 #import "StrContentId.h"
 #import "Reachability.h"
 #import "DataBaseSimple.h"
+#import "MBProgressHUD.h"
+#import "SinaWeibo.h"
+#import "AppDelegate.h"
+#import "MoreViewController.h"
 #define POSTONE @"Post  http://bea.wufazhuce.com:7001/OneForWeb/one/o_m"
-@interface HpCViewController ()
+@interface HpCViewController ()<MBProgressHUDDelegate,UIActionSheetDelegate>
 {
     EGORefreshTableHeaderView* _pullRightRefreshView;
     BOOL _reloading;
     ASIHTTPRequest * _request;
     ASIFormDataRequest * _fromDataRequest;
     DataBaseSimple * _simple;
+//    MBProgressHUD * _hud;
 }
 @end
 
@@ -45,7 +50,9 @@
         Hp_C_View * v=[[[NSBundle mainBundle]loadNibNamed:@"Hp_C_View" owner:Nil options:Nil] lastObject];
         v.frame=CGRectMake(320*i, 0, _scrollView.bounds.size.width, _scrollView.bounds.size.height);
         v.tag=100+i;
+        v.row=i+1;
         [_scrollView addSubview:v];
+        [v setData];
     }
 
     [_scrollView setShowsVerticalScrollIndicator:NO];
@@ -59,6 +66,7 @@
 {
     [super viewDidLoad];
     [self setAutomaticallyAdjustsScrollViewInsets:NO];
+
     // Do any additional setup after loading the view from its nib.
 //    self.view.backgroundColor=[UIColor orangeColor];
     // Do any additional setup after loading the view from its nib.
@@ -74,20 +82,22 @@
     self.navigationItem.titleView=[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"logo.png"]];
     self.navigationItem.rightBarButtonItem=[[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"shareBtn.png"] style:UIBarButtonItemStylePlain target:self action:@selector(rightBarButton)];
 //    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        Reachability * reach=[Reachability reachabilityForLocalWiFi];
-        if ([reach isReachable]) {
-            [self postOne];
-        }else{
-            _simple=[DataBaseSimple sharedDataBase];
-            [self resolve:[[[_simple getOnePost] JSONValue] objectForKey:@"entRet"]];
-        }
+//        Reachability * reach=[Reachability reachabilityForLocalWiFi];
+//        if ([reach isReachable]) {
+//            [self postOne];
+//        }else{
+//            _simple=[DataBaseSimple sharedDataBase];
+//            [self resolve:[[[_simple getOnePost] JSONValue] objectForKey:@"entRet"]];
+//        }
 //    });
-    
+//    _hud = [[MBProgressHUD alloc] initWithView:self.view];
+//    _hud.delegate =self;
+//    _hud.labelText = @"努力的加载中...";
+//    _hud.center =CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+//    [self.view addSubview:_hud];
+//    [self startAnimation];
 }
--(void) rightBarButton
-{
-    
-}
+
 - (void)viewDidUnload
 {
     _pullRightRefreshView = nil;
@@ -107,8 +117,9 @@
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view{
 	
 	[self reloadTableViewDataSource];
-    [self postOne];
-//	[self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:3.0];
+//    [self postOne];
+    [self reloadAllView];
+	[self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:2.0];
 	
 }
 
@@ -148,6 +159,7 @@
 	//  should be calling your tableviews data source model to reload
     
 	_reloading = YES;
+    
 }
 
 - (void)doneLoadingTableViewData{
@@ -164,7 +176,7 @@
 //    _reloading=YES;
     _fromDataRequest=[ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://bea.wufazhuce.com:7001/OneForWeb/one/o_m"]];
     _fromDataRequest.delegate=self;
-    [_fromDataRequest startAsynchronous];
+//    [_fromDataRequest startAsynchronous];
 }
 #pragma mark - ASIHTTPRequestDelegate
 -(void) requestFinished:(ASIHTTPRequest *)request
@@ -180,7 +192,7 @@
     }else{
         NSLog(@"%@ ASI error",[self class]);
     }
-                                
+//    [self stopAnimation];
 }
 -(void) requestFailed:(ASIHTTPRequest *)request
 {
@@ -192,6 +204,7 @@
     }
     [self doneLoadingTableViewData];
       NSLog(@"%@ ASI error---%@",[self class],request.error);
+//    [self stopAnimation];
 }
 #pragma mark - My Method
 -(void) resolve:(NSDictionary * ) dic
@@ -244,5 +257,66 @@
         [v setData];
     }
 }
+#pragma mark - MBP Method
+//- (void) startAnimation
+//{
+//	[_hud show:YES];
+//	UIApplication *application = [UIApplication sharedApplication];
+//	application.networkActivityIndicatorVisible = YES;
+//}
+//
+//- (void) stopAnimation
+//{
+//	[_hud hide:YES];
+//	UIApplication *application = [UIApplication sharedApplication];
+//	application.networkActivityIndicatorVisible = NO;
+//}
+-(void) rightBarButton
+{
 
+    MoreViewController * more =[[MoreViewController alloc] init];
+    [self presentViewController:more animated:YES completion:^{
+        
+    }];
+//    UIActionSheet * sheet=[[UIActionSheet alloc] initWithTitle:@"ALL_PARTS"delegate:self cancelButtonTitle:@"返回" destructiveButtonTitle:@"添加到收藏" otherButtonTitles:@"分享",@"登出", nil];
+//    [sheet showInView:self.view];
+
+}
+#pragma mark - UIActionSheetDelegate
+-(void) actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+
+    switch (buttonIndex) {
+//收藏
+        case 0:{
+            
+        }
+            break;
+//微博登入
+        case 1:{
+            SinaWeibo *sinaweibo = [self sinaweibo];
+            [sinaweibo logIn];
+        }
+            break;
+//登出
+        case 2:{
+            SinaWeibo *sinaweibo = [self sinaweibo];
+            [sinaweibo logOut];
+        }
+            break;
+        default:
+            break;
+    }
+    
+    }
+#pragma mark - SinaWeiBo
+- (SinaWeibo *)sinaweibo
+{
+    AppDelegate *delegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    return delegate.sinaweibo;
+}
+- (void)removeAuthData
+{
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"SinaWeiboAuthData"];
+}
 @end

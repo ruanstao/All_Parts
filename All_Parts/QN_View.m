@@ -11,6 +11,7 @@
 #import "DataBaseSimple.h"
 #import "ASIHTTPRequest.h"
 #import "MBProgressHUD.h"
+#import "QNModel.h"
 #define QNURL @"http://bea.wufazhuce.com:7001/OneForWeb/one/getQ_N?strUi=&strDate=%@&strRow=%d"
 @interface QN_View()<ASIHTTPRequestDelegate,MBProgressHUDDelegate>
 
@@ -53,40 +54,40 @@
 -(void) setData
 {
     _simple=[DataBaseSimple sharedDataBase];
-    NSDictionary * dic=[_simple getFromDataBaseFromTableName:@"all_question" withMarketTime:[_simple getDateForYestoday:(double)(_row-1)]];
-    if (dic == nil) {
+    QNModel * mod=[_simple getFromDataBaseFromTableName:@"all_question" withMarketTime:[_simple getDateForYestoday:(double)(_row-1)]];
+    if (mod.ID == nil) {
         NSString *strUrl=[NSString stringWithFormat:QNURL,[_simple getDate],_row];
         _request=[ASIHTTPRequest requestWithURL:[NSURL URLWithString:strUrl]];
         _request.delegate=self;
         _request.tag=1111;
         [_request startAsynchronous];
     }else{
-        _qnId=[dic objectForKey:@"id"];
-        _questionTitle.text=[dic objectForKey:@"questiontitle"];
-        _questionContent.text=[dic objectForKey:@"questioncontent"];
-        _answerTitle.text=[dic objectForKey:@"answertitle"];
-        _answerContent.text=[self resolveString:[dic objectForKey:@"answercontent"]];
-        [self setTime:[dic objectForKey:@"markettime"]];
+        _qnId=mod.ID;
+        _questionTitle.text=mod.questiontitle;
+        _questionContent.text=mod.questioncontent;
+        _answerTitle.text=mod.answertitle;
+        _answerContent.text=[self resolveString:mod.answercontent];
+        [self setTime:mod.markettime];
         [self reSetFrame];
     }
 }
 -(void) setTimeData
 {
     _simple=[DataBaseSimple sharedDataBase];
-    NSDictionary * dic=[_simple getFromDataBaseFromTableName:@"all_question" withMarketTime:_thingsTime];
-    if (dic == nil) {
+    QNModel * mod=[_simple getFromDataBaseFromTableName:@"all_question" withMarketTime:_thingsTime];
+    if (mod.ID == nil) {
         NSString *strUrl=[NSString stringWithFormat:QNURL,[_simple getDate],_row];
         _request=[ASIHTTPRequest requestWithURL:[NSURL URLWithString:strUrl]];
         _request.delegate=self;
         _request.tag=2222;
         [_request startAsynchronous];
     }else{
-        _qnId=[dic objectForKey:@"id"];
-        _questionTitle.text=[dic objectForKey:@"questiontitle"];
-        _questionContent.text=[dic objectForKey:@"questioncontent"];
-        _answerTitle.text=[dic objectForKey:@"answertitle"];
-        _answerContent.text=[self resolveString:[dic objectForKey:@"answercontent"]];
-        [self setTime:[dic objectForKey:@"markettime"]];
+        _qnId=mod.ID;
+        _questionTitle.text=mod.questiontitle;
+        _questionContent.text=mod.questioncontent;
+        _answerTitle.text=mod.answertitle;
+        _answerContent.text=[self resolveString:mod.answercontent];
+        [self setTime:mod.markettime];
         [self reSetFrame];
     }
 

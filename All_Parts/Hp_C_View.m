@@ -8,6 +8,7 @@
 
 #import "Hp_C_View.h"
 #import "MBProgressHUD.h"
+#import "HpModel.h"
 #define HPURL @"http://bea.wufazhuce.com:7001/OneForWeb/one/getHp_N?strDate=%@&strRow=%d"
 //2014-02-18  4
 @interface Hp_C_View()<MBProgressHUDDelegate>
@@ -47,11 +48,10 @@
     return self;
 }
 -(void) setData;
-{
+{   [self startAnimation];
     _simple=[DataBaseSimple sharedDataBase];
-    NSDictionary * dic=[_simple getFromDataBaseFromTableName:@"all_homepage" withMarketTime:[_simple getDateForYestoday:(double)(_row-1)]];
-    if (dic == nil) {
-        [self startAnimation];
+    HpModel * mod=[_simple getFromDataBaseFromTableName:@"all_homepage" withMarketTime:[_simple getDateForYestoday:(double)(_row-1)]];
+    if (mod.ID == nil) {
         NSString *strUrl=[NSString stringWithFormat:HPURL,[_simple getDate],_row];
 //        NSLog(@"%@",strUrl);
         _request=[ASIHTTPRequest requestWithURL:[NSURL URLWithString:strUrl]];
@@ -59,13 +59,13 @@
         [_request startAsynchronous];
     }else{
 //        NSLog(@"%@",dic);
-        _strHpTitle.text=[dic objectForKey:@"title"];
-        _strAuthor.text=[NSString stringWithFormat:@"%@\n%@",[dic objectForKey:@"author_introduce"],[dic objectForKey:@"author"]];
-        [self setContentText:[dic objectForKey:@"content"]];
-        [self setTime:[dic objectForKey:@"markettime"]];
-        [self setImage:[dic objectForKey:@"img_url"]];
-        [self stopAnimation];
+        _strHpTitle.text=mod.title;
+        _strAuthor.text=[NSString stringWithFormat:@"%@\n%@",mod.author_introduce,mod.author];
+        [self setContentText:mod.content];
+        [self setTime:mod.markettime];
+        [self setImage:mod.img_url];
     }
+    
 }
 -(void) setTime:(NSString *)str
 {
@@ -90,6 +90,7 @@
     }else{
     [_strOriginalImg setImageWithURL:[NSURL URLWithString:str]];
     }
+    [self stopAnimation];
 }
 -(void) setContentText:(NSString *) str
 {
@@ -120,6 +121,7 @@
         NSLog(@"%@ ASI error",[self class]);
     }
     [self setData];
+//    [self reloadInputViews];
 }
 -(void) requestFailed:(ASIHTTPRequest *)request
 {
