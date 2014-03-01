@@ -13,9 +13,6 @@
 //2014-02-18  4
 @interface Hp_C_View()<MBProgressHUDDelegate>
 @property (weak, nonatomic) IBOutlet UILabel *strHpTitle;
-@property (weak, nonatomic) IBOutlet UIImageView *strOriginalImg;
-@property (weak, nonatomic) IBOutlet UILabel *strAuthor;
-@property (weak, nonatomic) IBOutlet UILabel *strContent;
 @property (weak, nonatomic) IBOutlet UIImageView *strContentBackView;
 @property (weak, nonatomic) IBOutlet UILabel *dayDate;
 @property (weak, nonatomic) IBOutlet UILabel *daySubDate;
@@ -59,6 +56,7 @@
         [_request startAsynchronous];
     }else{
 //        NSLog(@"%@",dic);
+        _sWebLK=mod.sWebLk;
         _strHpTitle.text=mod.title;
         _strAuthor.text=[NSString stringWithFormat:@"%@\n%@",mod.author_introduce,mod.author];
         [self setContentText:mod.content];
@@ -100,6 +98,7 @@
 //    UIImage *img=_strContentBackView.image;
     _strContentBackView.image=[_strContentBackView.image resizableImageWithCapInsets:UIEdgeInsetsMake(25, 100, 5, 100) resizingMode:UIImageResizingModeStretch];
     _strContentBackView.frame=CGRectMake(_strContentBackView.frame.origin.x, _strContentBackView.frame.origin.y, _strContentBackView.frame.size.width, s.height+10);
+    _scrollView.contentSize=CGSizeMake(320, _strContentBackView.frame.origin.y+_strContentBackView.frame.size.height+60);
 }
 /*
 // Only override drawRect: if you perform custom drawing.

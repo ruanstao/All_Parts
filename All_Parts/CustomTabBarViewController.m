@@ -187,5 +187,34 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+#pragma mark - ASMediaFocusDelegate
+- (UIImage *)mediaFocusManager:(ASMediaFocusManager *)mediaFocusManager imageForView:(UIView *)view
+{
+//    NSLog(@"%@",view);
+    return ((UIImageView *)view).image;
+}
+
+- (CGRect)mediaFocusManager:(ASMediaFocusManager *)mediaFocusManager finalFrameforView:(UIView *)view
+{
+    return self.view.bounds;
+}
+
+- (UIViewController *)parentViewControllerForMediaFocusManager:(ASMediaFocusManager *)mediaFocusManager
+{
+    return self;
+}
+
+- (UIImage *)mediaFocusManager:(ASMediaFocusManager *)mediaFocusManager mediaPathForView:(UIView *)view
+{
+//    NSString *path;
+//    NSString *name;
+    
+    // Here, images are accessed through their name "1f.jpg", "2f.jpg", …
+    //    name = [NSString stringWithFormat:@"%df", ([self.imageViews indexOfObject:view] + 1)];
+//    path = [[NSBundle mainBundle] pathForResource:name ofType:@"jpg"];
+    
+    return ((UIImageView *)view).image;
+;
+}
 
 @end

@@ -13,9 +13,16 @@
 #import "ThingsViewController.h"
 #import "PersonalViewController.h"
 #import "CustomTabBarViewController.h"
-#import "SinaWeibo.h"
+//#import <libDoubanApiEngine/DOUAPIEngine.h>
+//
+//static NSString * const kAPIKey = @"0f9c7fedcad387ac2ed57fc9607a9704";
+//static NSString * const kPrivateKey = @"2a9aaac9a9cb830f";
+//static NSString * const kRedirectUrl = @"http://www.douban.com/location/mobile";
+NSString * const kHttpsApiBaseUrl = @"https://api.douban.com";
+NSString * const kHttpApiBaseUrl = @"http://api.douban.com";
+NSString * const kAuthUrl = @"https://www.douban.com/service/auth2/auth";
+NSString * const kTokenUrl = @"https://www.douban.com/service/auth2/token";
 @implementation AppDelegate
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -30,28 +37,40 @@
     UINavigationController * q_Nav=[[UINavigationController alloc] initWithRootViewController:q_Ctl];
     UINavigationController * th_Nav=[[UINavigationController alloc] initWithRootViewController:things];
     UINavigationController * per_Nav=[[UINavigationController alloc] initWithRootViewController:personal];
-    hp_Nav.navigationBar.translucent=NO;
+//    hp_Nav.navigationBar.translucent=NO;
 //    c_Nav.navigationBar.translucent=NO;
-    CustomTabBarViewController * root=[[CustomTabBarViewController alloc] init];
+    _root=[[CustomTabBarViewController alloc] init];
 //    root.tabBar.translucent=NO;
-    root.viewControllers=@[hp_Nav,c_Nav,q_Nav,th_Nav,per_Nav];
-    self.window.rootViewController=root;
+    _root.viewControllers=@[hp_Nav,c_Nav,q_Nav,th_Nav,per_Nav];
+    self.window.rootViewController=_root;
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
     
+    
 //SinaWeiBo
-    _sinaweibo = [[SinaWeibo alloc] initWithAppKey:kAppKey appSecret:kAppSecret appRedirectURI:kAppRedirectURI andDelegate:self];
-
-    // 从NSUserDefaults取3个参数 自动登陆
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSDictionary *sinaweiboInfo = [defaults objectForKey:@"SinaWeiboAuthData"];
-    if ([sinaweiboInfo objectForKey:@"AccessTokenKey"] && [sinaweiboInfo objectForKey:@"ExpirationDateKey"] && [sinaweiboInfo objectForKey:@"UserIDKey"])
-    {
-        _sinaweibo.accessToken = [sinaweiboInfo objectForKey:@"AccessTokenKey"];
-        _sinaweibo.expirationDate = [sinaweiboInfo objectForKey:@"ExpirationDateKey"];
-        _sinaweibo.userID = [sinaweiboInfo objectForKey:@"UserIDKey"];
+//    _sinaweibo = [[SinaWeibo alloc] initWithAppKey:kAppKey appSecret:kAppSecret appRedirectURI:kAppRedirectURI andDelegate:self];
+//
+//    // 从NSUserDefaults取3个参数 自动登陆
+//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//    NSDictionary *sinaweiboInfo = [defaults objectForKey:@"SinaWeiboAuthData"];
+//    if ([sinaweiboInfo objectForKey:@"AccessTokenKey"] && [sinaweiboInfo objectForKey:@"ExpirationDateKey"] && [sinaweiboInfo objectForKey:@"UserIDKey"])
+//    {
+//        _sinaweibo.accessToken = [sinaweiboInfo objectForKey:@"AccessTokenKey"];
+//        _sinaweibo.expirationDate = [sinaweiboInfo objectForKey:@"ExpirationDateKey"];
+//        _sinaweibo.userID = [sinaweiboInfo objectForKey:@"UserIDKey"];
+//    }
+    [WeiboSDK registerApp:kAppKey];
+    [WeiboSDK enableDebugMode:YES];
+    
+    DOUService * service = [DOUService sharedInstance];
+    service.clientId =kAPIKey;
+    service.clientSecret=kPrivateKey;
+    if ([service isValid]) {
+        service.apiBaseUrlString = kHttpsApiBaseUrl;
     }
-
+    else {
+        service.apiBaseUrlString = kHttpApiBaseUrl;
+    }
     return YES;
 }
 
@@ -59,10 +78,6 @@
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-}
--(void)dealloc
-{
-    _sinaweibo=nil;
 }
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
@@ -79,47 +94,122 @@
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
 
-    [self.sinaweibo applicationDidBecomeActive];
-
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
-- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
+- (void)didReceiveWeiboRequest:(WBBaseRequest *)request
 {
-    return [self.sinaweibo handleOpenURL:url];
+    if ([request isKindOfClass:WBProvideMessageForWeiboRequest.class])
+    {
+//        ProvideMessageForWeiboViewController *controller = [[[ProvideMessageForWeiboViewController alloc] init] autorelease];
+//        [self.viewController presentModalViewController:controller animated:YES];
+    }
+}
+
+- (void)didReceiveWeiboResponse:(WBBaseResponse *)response
+{
+    if ([response isKindOfClass:WBSendMessageToWeiboResponse.class])
+    {
+        NSString *title = @"发送结果";
+        NSString *message = [NSString stringWithFormat:@"响应状态: %d\n响应UserInfo数据: %@\n原请求UserInfo数据: %@",(int)response.statusCode, response.userInfo, response.requestUserInfo];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                        message:message
+                                                       delegate:nil
+                                              cancelButtonTitle:@"确定"
+                                              otherButtonTitles:nil];
+        [alert show];
+    }
+    else if ([response isKindOfClass:WBAuthorizeResponse.class])
+    {
+        NSString *title = @"认证结果";
+        NSString *message = [NSString stringWithFormat:@"响应状态: %d\nresponse.userId: %@\nresponse.accessToken: %@\n响应UserInfo数据: %@\n原请求UserInfo数据: %@",(int)response.statusCode,[(WBAuthorizeResponse *)response userID], [(WBAuthorizeResponse *)response accessToken], response.userInfo, response.requestUserInfo];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                        message:message
+                                                       delegate:nil
+                                              cancelButtonTitle:@"确定"
+                                              otherButtonTitles:nil];
+        
+        self.wbtoken = [(WBAuthorizeResponse *)response accessToken];
+        
+        [[NSUserDefaults standardUserDefaults] setObject:response.userInfo   forKey:@"SinaWeiBoUserInfo"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        [alert show];
+
+    }
 }
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
-    return [self.sinaweibo handleOpenURL:url];
+    return [WeiboSDK handleOpenURL:url delegate:self];
 }
+
 #pragma mark- My Method
 //- (SinaWeibo *)sinaweibo
 //{
 //    AppDelegate *delegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
 //    return delegate.sinaweibo;
 //}
-#pragma mark - SinaWeiboDelegate,SinaWeiboRequestDelegate
--(void) sinaweiboDidLogIn:(SinaWeibo *)sinaweibo
+
+#pragma mark - WBHttpRequestDelegate
+- (void)request:(WBHttpRequest *)request didReceiveResponse:(NSURLResponse *)response
 {
-    NSLog(@"sinaweiboDidLogIn userID = %@ accesstoken = %@ expirationDate = %@ refresh_token = %@", sinaweibo.userID, sinaweibo.accessToken, sinaweibo.expirationDate,sinaweibo.refreshToken);
+    NSLog(@"%@",request);
+    NSHTTPURLResponse * resp=(NSHTTPURLResponse*) response;
+    NSLog(@"%@",resp);
+    NSString * str;
     
-    NSDictionary *authData = [NSDictionary dictionaryWithObjectsAndKeys:
-                              _sinaweibo.accessToken, @"AccessTokenKey",
-                              _sinaweibo.expirationDate, @"ExpirationDateKey",
-                              _sinaweibo.userID, @"UserIDKey",
-                              _sinaweibo.refreshToken, @"refresh_token", nil];
-    [[NSUserDefaults standardUserDefaults] setObject:authData forKey:@"SinaWeiboAuthData"];
+    if ([request.tag isEqual:@"200"]) {
+        if (resp.statusCode==200) {
+            str=@"微博分享成功";
+        }
+        else{
+            if (resp.statusCode==400) {
+                str=@"登入超时，请重新登入";
+                [self removeSinaWeiboUserInfo];
+            }else{
+                str=@"微博分享失败";
+            }
+        }
+    }else if ([request.tag isEqualToString:@"210"]){
+        if (resp.statusCode==200) {
+            str= @"微博登出成功";
+        }
+        else{
+            str=@"微博登出失败";
+        }
+    }
+    UIAlertView * alert=[[UIAlertView alloc] initWithTitle:@"All_Parts" message:str delegate:self cancelButtonTitle:@"返回" otherButtonTitles:@"知道了", nil];
+    [alert show];
+}
+/*1
+ url	__NSCFString *	@"https://api.weibo.com/oauth2/revokeoauth2"	0x08c9abc0
+ WeiboSDKResponseStatusCodeSuccess               = 0,//成功
+ WeiboSDKResponseStatusCodeUserCancel            = -1,//用户取消发送
+ WeiboSDKResponseStatusCodeSentFail              = -2,//发送失败
+ WeiboSDKResponseStatusCodeAuthDeny              = -3,//授权失败
+ WeiboSDKResponseStatusCodeUserCancelInstall     = -4,//用户取消安装微博客户端
+ WeiboSDKResponseStatusCodeUnsupport             = -99,//不支持的请求
+ WeiboSDKResponseStatusCodeUnknown               = -100,
+ */
+/**
+ 收到一个来自微博Http请求失败的响应
+ 
+ @param error 错误信息
+ */
+
+- (void)request:(WBHttpRequest *)request didFailWithError:(NSError *)error
+{
+    NSLog(@"%@",error);
+}
+- (void)removeSinaWeiboUserInfo
+{
+    NSDictionary * userInfo=[[NSUserDefaults standardUserDefaults] objectForKey:@"SinaWeiBoUserInfo"];
+    [WeiboSDK logOutWithToken:[userInfo objectForKey:@"access_token"] delegate:self withTag:@"210"];
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"SinaWeiBoUserInfo"];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
--(void) sinaweiboDidLogOut:(SinaWeibo *)sinaweibo
-{
-    _sinaweibo.accessToken=nil;
-    
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"SinaWeiboAuthData"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
+
 @end

@@ -13,10 +13,22 @@
 #ifdef __OBJC__
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
+
+#import "WeiboSDK.h"
+#define kAppKey             @"2130509836"
+#define kAppSecret          @"b2018c9075b2becc352f9fc73a1dea36"
+#define kAppRedirectURI     @"https://api.weibo.com/oauth2/default.html"
+
+#define kAPIKey  @"0f9c7fedcad387ac2ed57fc9607a9704"
+#define kPrivateKey @"2a9aaac9a9cb830f"
+#define kRedirectUrl @"http://www.douban.com/location/mobile"
+
 #endif
 
 #if __IPHONE_7_0 && __IPHONE_OS_VERSION_MAX_ALLOWED >=  __IPHONE_7_0
 #define IS_RUNNING_IOS7 ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0)
 #else
 #define IS_RUNNING_IOS7 NO
+
 #endif
+

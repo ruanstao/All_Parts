@@ -13,9 +13,13 @@
 #import "StrContentId.h"
 #import "DataBaseSimple.h"
 @interface Hp_C_View : UIView<ASIHTTPRequestDelegate>
-
+@property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+@property (weak, nonatomic) IBOutlet UIImageView *strOriginalImg;
 @property (nonatomic,strong) StrContentId * strHpId;
 @property (nonatomic,assign) NSInteger row;
+@property (weak, nonatomic) IBOutlet UILabel *strContent;
+@property (weak, nonatomic) IBOutlet UILabel *strAuthor;
+@property (strong, nonatomic) NSString * sWebLK;
 -(void) setData;
 @end
 //    "result": "SUCCESS",

@@ -69,7 +69,8 @@
     }
 }
 -(void) setTimeData
-{  _simple=[DataBaseSimple sharedDataBase];
+{
+    _simple=[DataBaseSimple sharedDataBase];
     CNModel * mod =[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:_thingsTime];
     if (mod.ID == nil) {
         NSString *strUrl=[NSString stringWithFormat:CNURL,[_simple getDate],_row];
@@ -94,6 +95,7 @@
     NSDateFormatter * formatter=[[NSDateFormatter alloc]init];
     [formatter setDateFormat:@"yyyy-MM-dd"];
     NSDate * old=[formatter dateFromString:str];
+    _selfTime=str;
     //    NSLog(@"%@",old);
     NSDateFormatter * d=[[NSDateFormatter alloc] init];
     [d setDateFormat:@"MMMM dd,yyyy"];
@@ -192,7 +194,7 @@
     CGSize oneTextSize = [@"一行的高度" sizeWithFont:_content.font
                             constrainedToSize:CGSizeMake(_content.frame.size.width, MAXFLOAT) lineBreakMode:NSLineBreakByCharWrapping];
     //500最多多少行
-    int maxRow=400.0/oneTextSize.height;
+    int maxRow=500.0/oneTextSize.height;
 //    dispatch_async(dispatch_get_main_queue(), ^{
         _content.frame=CGRectMake(_content.frame.origin.x,
                                   _content.frame.origin.y,

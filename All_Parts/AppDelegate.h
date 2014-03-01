@@ -7,15 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "SinaWeibo.h"
-#import "SinaWeiboRequest.h"
-#define kAppKey             @"2130509836"
-#define kAppSecret          @"b2018c9075b2becc352f9fc73a1dea36"
-#define kAppRedirectURI     @"https://api.weibo.com/oauth2/default.html"
-@class  SinaWeibo;
-@interface AppDelegate : UIResponder <UIApplicationDelegate,SinaWeiboDelegate,SinaWeiboRequestDelegate>
+#import "CustomTabBarViewController.h"
+#import "WeiboSDK.h"
+#import <libDoubanApiEngine/DOUService.h>
+@interface AppDelegate : UIResponder <UIApplicationDelegate,WeiboSDKDelegate,WBHttpRequestDelegate>
 
-@property (strong, nonatomic) SinaWeibo * sinaweibo;
+//@property (strong, nonatomic) SinaWeibo * sinaweibo;
 @property (strong, nonatomic) UIWindow *window;
-
+@property (strong, nonatomic) CustomTabBarViewController * root;
+@property (strong, nonatomic) NSString *wbtoken;
 @end

@@ -96,20 +96,6 @@ static DataBaseSimple * simple = nil;
              mod.lastupdatedate=[rs stringForColumn:@"lastupdatedate"];
              mod.praisenumber=[rs stringForColumn:@"praisenumber"];
              return mod;
-//             NSMutableDictionary * dic = [[NSMutableDictionary alloc] init];
-//             [dic setObject:[rs stringForColumn:@"id"] forKey:@"id"];
-//             [dic setObject:[rs stringForColumn:@"conttitle"] forKey:@"conttitle"];
-//             [dic setObject:[rs stringForColumn:@"contauthor"] forKey:@"contauthor"];
-//             [dic setObject:[rs stringForColumn:@"content"] forKey:@"content"];
-//             [dic setObject:[rs stringForColumn:@"contauthorintroduce"] forKey:@"contauthorintroduce"];
-//             [dic setObject:[rs stringForColumn:@"sauth"] forKey:@"sauth"];
-//             [dic setObject:[rs stringForColumn:@"sgw"] forKey:@"sgw"];
-//             [dic setObject:[rs stringForColumn:@"swbn"] forKey:@"swbn"];
-//             [dic setObject:[rs stringForColumn:@"sweblk"] forKey:@"sweblk"];
-//             [dic setObject:[rs stringForColumn:@"contmarkettime"] forKey:@"contmarkettime"];
-//             [dic setObject:[rs stringForColumn:@"lastupdatedate"] forKey:@"lastupdatedate"];
-//             [dic setObject:[rs stringForColumn:@"praisenumber"] forKey:@"praisenumber"];
-//             return dic;
          }
      }
     else if ([name isEqualToString:@"all_question"]){

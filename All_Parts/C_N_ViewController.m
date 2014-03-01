@@ -11,10 +11,21 @@
 #import "CN_View.h"
 #import "CNModel.h"
 #import "DataBaseSimple.h"
-@interface C_N_ViewController ()<NJKScrollFullscreenDelegate,EGORefreshTableHeaderDelegate,UIScrollViewDelegate,ASIHTTPRequestDelegate,UIActionSheetDelegate>
+#import "ActionView.h"
+#import "ActionViewContent.h"
+#import "AppDelegate.h"
+#import <libDoubanApiEngine/DOUService.h>
+#import <libDoubanApiEngine/DOUQuery.h>
+#import <libDoubanApiEngine/DOUOAuthStore.h>
+#import <libDoubanApiEngine/DOUHttpRequest.h>
+#import "WebViewController.h"
+@interface C_N_ViewController ()<NJKScrollFullscreenDelegate,EGORefreshTableHeaderDelegate,UIScrollViewDelegate,ASIHTTPRequestDelegate,ActionViewContentDelegate>
 @property (weak, nonatomic) IBOutlet UIScrollView *refreshScrollView;
 @property (nonatomic) NJKScrollFullScreen *scrollProxy;
-
+@property (nonatomic, retain)NSArray         *shareImageList;
+@property (nonatomic, retain)NSArray         *shareImageValue;
+@property (nonatomic, retain)NSArray         *shareImageActionTypes;
+@property (nonatomic, retain)ActionView      *shareView;
 @end
 
 @implementation C_N_ViewController
@@ -94,7 +105,8 @@
 //        _simple=[DataBaseSimple sharedDataBase];
 //        [self resolve:[[[_simple getOnePost] JSONValue] objectForKey:@"entRet"]];
 //    }
-    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishRemoveView) name:@"REMOVE" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveButton) name:@"SAVE" object:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -190,6 +202,7 @@
     [self moveNavigtionBar:deltaY animated:YES];
 //    [self moveToolbar:-deltaY animated:YES];
     [self moveTabBar:-deltaY animated:YES];
+
 }
 
 - (void)scrollFullScreenScrollViewDidEndDraggingScrollUp:(NJKScrollFullScreen *)proxy
@@ -224,35 +237,202 @@
 }
 -(void) rightBarButton
 {
-    UIActionSheet * sheet=[[UIActionSheet alloc] initWithTitle:@"ALL_PARTS"delegate:self cancelButtonTitle:@"返回" destructiveButtonTitle:@"添加到收藏" otherButtonTitles:@"分享",@"登出", nil];
-    [sheet showInView:self.view];
+    [self showShareView:self isFollow:NO];
+
 }
-#pragma mark - UIActionSheetDelegate
--(void) actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex{
-    switch (buttonIndex) {
-            //添加收藏
+-(void) moveUpView
+{
+    [self scrollFullScreen:nil scrollViewDidScrollUp:-44];
+    [UIView animateWithDuration:0.2 animations:^{
+//        self.navigationController.navigationBar.frame=CGRectMake(0, -44, 320, 44);
+        self.refreshScrollView.frame=CGRectMake(0, -44, 320, self.refreshScrollView.frame.size.height);
+    } completion:^(BOOL finished) {
+//        [self.tabBarController.tabBar setHidden:YES];
+    }];
+}
+-(void) moveDownView
+{
+    [self scrollFullScreen:nil scrollViewDidScrollDown:44];
+    [UIView animateWithDuration:0.2 animations:^{
+//        self.navigationController.navigationBar.frame=CGRectMake(0, 20, 320, 44);
+        self.refreshScrollView.frame=CGRectMake(0,0, 320, self.refreshScrollView.frame.size.height);
+    } completion:^(BOOL finished) {
+//        [self.tabBarController.tabBar setHidden:NO];
+    }];
+}
+#pragma mark - ShowAction
+-(void)showShareView:(UIViewController *)uiViewController isFollow:(BOOL)follow
+{
+    [self moveUpView];
+    if (self.shareImageList==nil) {
+        self.shareImageList = @[@"share_sina.png", @"share_tc.png", @"share_douban.png", @"share_timeline.png", @"share_wc.png", @"share_wc.png", @"share_renn.png", @"share_save.png", @"share_font",@"share_sina.png",@"share_douban.png"];
+        self.shareImageValue = @[@"新浪微博", @"腾讯微博", @"豆瓣",@"朋友圈",@"微信好友",@"微信收藏",@"人人网",@"拷贝",@"短信",@"登出新浪微博",@"登出豆瓣"];
+        self.shareImageActionTypes = @[[NSNumber numberWithInteger:ShareTypeSinaWeibo],
+                                       [NSNumber numberWithInteger:ShareTypeTencentWeibo],
+                                       [NSNumber numberWithInteger:ShareTypeDouBan],
+                                       [NSNumber numberWithInteger:ShareTypeWeixiTimeline],
+                                       [NSNumber numberWithInteger:ShareTypeWeixiFav],
+                                       [NSNumber numberWithInteger:ShareTypeWeixiSession],
+                                       [NSNumber numberWithInteger:ShareTypeSMS],
+                                       [NSNumber numberWithInteger:ShareTypeCopy],
+                                       [NSNumber numberWithInteger:ShareTypeAny],
+                                       [NSNumber numberWithInteger:ShareTypeSinaWeibo],
+                                       [NSNumber numberWithInteger:ShareTypeDouBan]];
+    }
+    CGRect baseRect = [[UIScreen mainScreen] bounds];
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone){
+        ActionViewContent * sheetContentView = [[ActionViewContent alloc] initWithFrame:CGRectMake(0, 0, 320, 180)];
+        sheetContentView = [sheetContentView initwithIconSheetDelegate:self ItemCount:[self numberOfItemsInActionSheet]];
+        self.shareView=[[ActionView alloc] initWithFrame:CGRectMake(0, [[UIApplication sharedApplication] keyWindow].frame.size.height, baseRect.size.width, 350)];
+        [self.shareView addSubview:sheetContentView];
+        [self.shareView updateFollowStatus:follow];
+        [self.shareView.FollowButton setTitle:@"收藏" forState:UIControlStateNormal];
+        self.shareView.FollowButtonNormal=@"已收藏";
+        self.shareView.FollowButtonSelect=@"已收藏";
+        [self.shareView showInView:uiViewController.view];
+    }
+}
+
+#pragma mark - ActionViewContentDelegate
+- (int)numberOfItemsInActionSheet
+{
+    return self.shareImageList.count;
+}
+- (ActionViewContentCell*)cellForViewAtIndex:(NSInteger)index
+{
+    ActionViewContentCell* cell = [[ActionViewContentCell alloc] init];
+    
+    [[cell iconView] setImage:[UIImage imageNamed:[self.shareImageList objectAtIndex:index]]];
+    [[cell titleLabel] setText:[ self.shareImageValue objectAtIndex:index]];
+    cell.index = index;
+    cell.actionType = [[self.shareImageActionTypes objectAtIndex:index] integerValue];
+    return cell;
+}
+- (void)DidTapOnItemAtIndex:(NSInteger)index actionType:(NSInteger)type
+{
+    NSLog(@"didTap: %d",index);
+    switch (index) {
         case 0:{
-            _simple=[DataBaseSimple sharedDataBase];
-            int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
-            CN_View * v=(CN_View*)[self.view viewWithTag:100+currentpage];
-            NSMutableDictionary * dic=[NSMutableDictionary dictionary];
-            [dic setObject: v.contTitle.text forKey:@"title"];
-            [dic setObject: [_simple getDateForYestoday:(double)currentpage] forKey:@"markettime"];
-            [dic setObject: v.conId forKey:@"id"];
-            [dic setObject:@"all_content" forKey:@"tablename"];
-            [_simple insertDataForTableName:@"all_things" with:dic];
+            [self sinaWeiBo];
         }
             break;
-    //分享
         case 1:{
+            
         }
             break;
         case 2:{
-
+            [self douban];
+        }
+            break;
+        case 3:{
+            
         }
             break;
         default:
             break;
+        case 9:{
+            [self removeSinaWeiboUserInfo];
+        }
+            break;
+        case 10:{
+            [[DOUOAuthStore sharedInstance] clear];
+            
+        }
+    }
+    [self.shareView dismiss];
+}
+
+#pragma mark - ActionViewDelegate
+
+-(void) finishRemoveView
+{
+    [self moveDownView];
+}
+-(void) saveButton
+{
+    _simple=[DataBaseSimple sharedDataBase];
+    int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
+    CN_View * v=(CN_View*)[self.view viewWithTag:100+currentpage];
+    NSMutableDictionary * dic=[NSMutableDictionary dictionary];
+    [dic setObject: v.contTitle.text forKey:@"title"];
+    [dic setObject: [_simple getDateForYestoday:(double)currentpage] forKey:@"markettime"];
+    [dic setObject: v.conId forKey:@"id"];
+    [dic setObject:@"all_content" forKey:@"tablename"];
+    [_simple insertDataForTableName:@"all_things" with:dic];
+
+
+
+}
+#pragma mark - SinaWeiBo
+-(void) sinaWeiBo
+{
+    NSDictionary * userInfo=[[NSUserDefaults standardUserDefaults] objectForKey:@"SinaWeiBoUserInfo"];
+    if (userInfo==nil) {
+        WBAuthorizeRequest *request = [WBAuthorizeRequest request];
+        request.redirectURI = kAppRedirectURI;
+        request.scope = @"all";
+        request.userInfo =nil;
+        [WeiboSDK sendRequest:request];
+    }
+    else {
+        int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
+        CN_View * v=(CN_View*)[self.view viewWithTag:100+currentpage];
+        _simple=[DataBaseSimple sharedDataBase];
+        CNModel * mod =[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:v.selfTime];
+        NSString * shareStr=[NSString stringWithFormat:@"《%@》by %@ “%@” %@ - 阅读全文：%@",mod.conttitle,mod.contauthor,mod.sgw,mod.swbn,mod.sweblk];
+        [WBHttpRequest requestWithAccessToken:[userInfo objectForKey:@"access_token"]
+                                          url:@"https://api.weibo.com/2/statuses/update.json"
+                                   httpMethod:@"POST"
+                                       params:[NSMutableDictionary dictionaryWithObjectsAndKeys:shareStr,@"status",nil]
+                                     delegate:(AppDelegate *)[UIApplication sharedApplication].delegate
+                                      withTag:@"200"];
+//        WBMessageObject * message=[WBMessageObject message];
+//        message.text=shareStr;
+//        WBProvideMessageForWeiboResponse * respone = [WBProvideMessageForWeiboResponse responseWithMessage:message];
+//        [WeiboSDK sendResponse:respone];
     }
 }
+- (void)removeSinaWeiboUserInfo
+{
+    NSDictionary * userInfo=[[NSUserDefaults standardUserDefaults] objectForKey:@"SinaWeiBoUserInfo"];
+    [WeiboSDK logOutWithToken:[userInfo objectForKey:@"access_token"] delegate:(AppDelegate *)[UIApplication sharedApplication].delegate withTag:@"210"];
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"SinaWeiBoUserInfo"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+#pragma mark - DouBan
+-(void) douban
+{
+    int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
+    CN_View * v=(CN_View*)[self.view viewWithTag:100+currentpage];
+    _simple=[DataBaseSimple sharedDataBase];
+    CNModel * mod =[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:v.selfTime];
+    DOUOAuthStore *store = [DOUOAuthStore sharedInstance];
+    DOUService * service = [DOUService sharedInstance];
+    if (store.userId != 0 && store.refreshToken && ![store shouldRefreshToken]) {
+        DOUQuery * query =[[DOUQuery alloc] initWithSubPath:@"/shuo/v2/statuses/" parameters:nil];
+        DOUReqBlock completionBlock=^(DOUHttpRequest * req){
+            //            NSLog(@"code:%d, str:%@", [req responseStatusCode], [req responseString]);
+            NSError *theError = [req doubanError];
+            if (!theError) {
+                NSLog(@"发送成功");
+            }
+            else {
+                NSLog(@"%@", theError);
+            }
+        };
+
+        NSString * shareStr=[NSString stringWithFormat:@"text=《%@》by %@ “%@” %@ - 阅读全文：%@",mod.conttitle,mod.contauthor,mod.sgw,mod.swbn,mod.sweblk];
+//        [service post2: query photoData:data description:description callback:completionBlock uploadProgressDelegate:self];
+        [service post:query postBody:shareStr callback:completionBlock];
+    }
+    else{
+        NSString *str = [NSString stringWithFormat:@"https://www.douban.com/service/auth2/auth?client_id=%@&redirect_uri=%@&response_type=code",kAPIKey, kRedirectUrl];
+        //            NSLog(@"%@",str);
+        NSString *urlStr = [str stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        NSURL *url = [NSURL URLWithString:urlStr];
+        UIViewController *webViewController = [[WebViewController alloc] initWithRequestURL:url];
+        [self.navigationController pushViewController:webViewController animated:YES];
+    }
+}
+
 @end

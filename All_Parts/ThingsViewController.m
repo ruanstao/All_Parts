@@ -82,7 +82,7 @@
     cell.textLabel.font=[UIFont systemFontOfSize:15];
     cell.textLabel.numberOfLines=0;
     cell.detailTextLabel.font=[UIFont systemFontOfSize:13];
-    cell.selectionStyle=UITableViewCellSelectionStyleNone;
+//    cell.selectionStyle=UITableViewCellSelectionStyleNone;
     return cell;
 }
 -(CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -108,6 +108,7 @@
     }
     _things=[_simple getDataFromAllThings];
     [_tableView reloadData];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 #pragma mark - My Method
 -(void) rightBarButton

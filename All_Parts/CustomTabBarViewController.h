@@ -7,8 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-
-@interface CustomTabBarViewController : UITabBarController
+#import "ASMediaFocusManager.h"
+@interface CustomTabBarViewController : UITabBarController<ASMediasFocusDelegate>
 {
 UIImage                             *_tabBarBackgroundImage;  //整个tabBar的背景
 NSMutableArray                       *_unSelectedImageArray;   //非选中效果的tabBarItem数组

@@ -96,6 +96,7 @@
 {
     NSDateFormatter * formatter=[[NSDateFormatter alloc]init];
     [formatter setDateFormat:@"yyyy-MM-dd"];
+    _selfTime=str;
     NSDate * old=[formatter dateFromString:str];
     NSDateFormatter * d=[[NSDateFormatter alloc] init];
     [d setDateFormat:@"MMMM dd,yyyy"];

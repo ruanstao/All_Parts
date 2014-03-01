@@ -34,6 +34,7 @@
 @property (weak,nonatomic) IBOutlet UILabel *questionTitle;
 @property (nonatomic,assign) NSInteger row;
 @property (nonatomic,strong) NSString * qnId;
+@property (nonatomic,strong) NSString * selfTime;
 @property (nonatomic,strong) NSString * thingsTime;
 -(void) setData;
 -(void) setTimeData;

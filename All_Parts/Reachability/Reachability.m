@@ -167,7 +167,7 @@ static void logNetworkStatus_(const char *name, int line, NetworkStatus status) 
 			statusString = [NSString stringWithString: @"Reachable via WWAN"];
 			break;
 		case kReachableViaWiFi:
-			statusString = [NSString stringWithString: @"Reachable via WiFi"];
+			statusString = @"Reachable via WiFi";
 			break;
 	}
 	
