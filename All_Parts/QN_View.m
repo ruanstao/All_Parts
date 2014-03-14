@@ -44,6 +44,7 @@
     if (self) {
         _hud = [[MBProgressHUD alloc] initWithView:self];
         _hud.delegate =self;
+        _hud.minShowTime=2;
         _hud.labelText = @"努力的加载中...";
         _hud.center =CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
         [self addSubview:_hud];
@@ -110,6 +111,16 @@
     while (range.length!=0) {
         [change replaceCharactersInRange:range withString:@"\n"];
         range=[change rangeOfString:@"<br>"];
+    }
+    range=[change rangeOfString:@"<b>"];
+    while (range.length!=0) {
+        [change replaceCharactersInRange:range withString:@""];
+        range=[change rangeOfString:@"<b>"];
+    }
+    range=[change rangeOfString:@"</b>"];
+    while (range.length!=0) {
+        [change replaceCharactersInRange:range withString:@""];
+        range=[change rangeOfString:@"</b>"];
     }
     if ([change rangeOfString:@"<i>"].length!=0) {
         [change deleteCharactersInRange:[change rangeOfString:@"<i>"]];

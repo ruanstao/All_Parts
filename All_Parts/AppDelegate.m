@@ -45,7 +45,7 @@ NSString * const kTokenUrl = @"https://www.douban.com/service/auth2/token";
     self.window.rootViewController=_root;
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
-    
+    [self firstTime];
     
 //SinaWeiBo
 //    _sinaweibo = [[SinaWeibo alloc] initWithAppKey:kAppKey appSecret:kAppSecret appRedirectURI:kAppRedirectURI andDelegate:self];
@@ -73,7 +73,27 @@ NSString * const kTokenUrl = @"https://www.douban.com/service/auth2/token";
     }
     return YES;
 }
-
+-(void) firstTime
+{
+    int page=4;
+    NSArray *arr=[NSArray arrayWithObjects:@"零碎.png",@"Default__1.png",@"Default.png",@"Default__1.png", nil];
+    NSUserDefaults * user=[NSUserDefaults standardUserDefaults];
+    [user removeObjectForKey:@"FirstTime"];
+    if (![user objectForKey:@"FirstTime"]) {
+        UIScrollView * _firstTimeScrollView=[[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.window.frame.size.width, self.window.frame.size.height)];
+        _firstTimeScrollView.delegate=self;
+        _firstTimeScrollView.alwaysBounceHorizontal=NO;
+        _firstTimeScrollView.pagingEnabled=YES;
+        _firstTimeScrollView.bounces=NO;
+        _firstTimeScrollView.contentSize=CGSizeMake(_firstTimeScrollView.bounds.size.width*page, _firstTimeScrollView.bounds.size.height);
+        for (int i=0;i<page; i++) {
+            UIImageView * imgView=[[UIImageView alloc] initWithFrame:CGRectMake(i*_firstTimeScrollView.frame.size.width, 0, _firstTimeScrollView.frame.size.width, _firstTimeScrollView.frame.size.height)];
+            imgView.image=[UIImage imageNamed:arr[i]];
+            [_firstTimeScrollView addSubview:imgView];
+        }
+        [self.window addSubview:_firstTimeScrollView];
+    }
+}
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
@@ -210,6 +230,18 @@ NSString * const kTokenUrl = @"https://www.douban.com/service/auth2/token";
     [WeiboSDK logOutWithToken:[userInfo objectForKey:@"access_token"] delegate:self withTag:@"210"];
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"SinaWeiBoUserInfo"];
     [[NSUserDefaults standardUserDefaults] synchronize];
+}
+#pragma  mark - UIScrollViewDelegate
+-(void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    int page=scrollView.contentOffset.x/320+1;
+    if (page==4) {
+        [UIView animateWithDuration:1 animations:^{
+            scrollView.alpha=0;
+        } completion:^(BOOL finished) {
+            [[NSUserDefaults standardUserDefaults] setObject:@"YES" forKey:@"FirstTime"];
+        }];
+    }
 }
 
 @end

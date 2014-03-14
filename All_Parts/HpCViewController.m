@@ -34,13 +34,14 @@
     DataBaseSimple * _simple;
 //    MBProgressHUD * _hud;
     NSMutableArray * _imageViews;
-    
+    NSInteger _curPage;
+    NSInteger _oldPage;
+    BOOL _pageChanging;
 }
 @property (nonatomic, retain)NSArray         *shareImageList;
 @property (nonatomic, retain)NSArray         *shareImageValue;
 @property (nonatomic, retain)NSArray         *shareImageActionTypes;
 @property (nonatomic, retain)ActionView      *shareView;
-
 @end
 
 @implementation HpCViewController
@@ -55,22 +56,15 @@
 }
 - (void)creatScrollView
 {
-    int pagewide = self.scrollView.bounds.size.width;
-    int height = self.scrollView.bounds.size.height;
+    int pagewide = [UIScreen mainScreen].bounds.size.width;
+    int height =[UIScreen mainScreen].bounds.size.height;
     [_scrollView setScrollEnabled:YES];
     _scrollView.contentSize = CGSizeMake(pagewide*3,height);
+    _scrollView.tag=188;
     _imageViews=[[NSMutableArray alloc] init];
-    for (int i=0;i<3; i++) {
-        Hp_C_View * v=[[[NSBundle mainBundle]loadNibNamed:@"Hp_C_View" owner:Nil options:Nil] lastObject];
-        v.frame=CGRectMake(320*i, 0, _scrollView.bounds.size.width, _scrollView.bounds.size.height);
-        v.tag=100+i;
-        v.row=i+1;
-        [_imageViews addObject:v.strOriginalImg];
-        [v setData];
-        [_scrollView addSubview:v];
-        
-    }
-
+    _curPage=0;
+    [self addView:_curPage];
+    
     [_scrollView setShowsVerticalScrollIndicator:NO];
     [_scrollView setShowsHorizontalScrollIndicator:NO];
     [_scrollView setPagingEnabled:NO];
@@ -82,13 +76,15 @@
 {
     [super viewDidLoad];
     [self setAutomaticallyAdjustsScrollViewInsets:NO];
-
+    self.focusManager = [[ASMediaFocusManager alloc] init];
+    AppDelegate * dele=(AppDelegate *)[UIApplication sharedApplication].delegate;
+    self.focusManager.delegate = dele.root;
     // Do any additional setup after loading the view from its nib.
 //    self.view.backgroundColor=[UIColor orangeColor];
     // Do any additional setup after loading the view from its nib.
     [self creatScrollView];
     if (_pullRightRefreshView == nil) {
-		EGORefreshTableHeaderView * view = [[EGORefreshTableHeaderView alloc] initWithFrame:CGRectMake(0.0f-self.scrollView.bounds.size.width, 0.0f, self.scrollView.frame.size.width, self.scrollView.bounds.size.height)];
+		EGORefreshTableHeaderView * view = [[EGORefreshTableHeaderView alloc] initWithFrame:CGRectMake(0.0f-[UIScreen mainScreen].bounds.size.width, 0.0f, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height)];
         view.delegate = self;
         [self.scrollView addSubview:view];
         _pullRightRefreshView=view;
@@ -116,14 +112,15 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishRemoveView) name:@"REMOVE" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveButton) name:@"SAVE" object:nil];
     
-    self.focusManager = [[ASMediaFocusManager alloc] init];
-    AppDelegate * dele=(AppDelegate *)[UIApplication sharedApplication].delegate;
-    self.focusManager.delegate = dele.root;
 
-    [self.focusManager installOnViews:_imageViews];
 //    NSLog(@"%@",((Hp_C_View*)_scrollView.subviews[1]).strOriginalImg);
 
 }
+-(void)viewWillDisappear:(BOOL)animated
+{
+    [_request cancel];
+}
+
 - (void)viewDidUnload
 {
     _pullRightRefreshView = nil;
@@ -145,7 +142,7 @@
 	
 	[self reloadTableViewDataSource];
 //    [self postOne];
-    [self reloadAllView];
+    [self reloadView];
 	[self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:2.0];
 	
 }
@@ -160,7 +157,51 @@
 - (NSDate*)egoRefreshTableHeaderDataSourceLastUpdated:(EGORefreshTableHeaderView*)view{
     
 	return [NSDate date]; // should return date data source was last changed
-	
+}
+#pragma mark - ScrollView Method
+-(void) addView:(NSInteger) index
+{
+    Hp_C_View * v=[[[NSBundle mainBundle]loadNibNamed:@"Hp_C_View" owner:Nil options:Nil] lastObject];
+    v.frame=CGRectMake(320*index, 0,[UIScreen mainScreen].bounds.size.width,     [UIScreen mainScreen].bounds.size.height);
+    v.tag=100+index;
+    v.row=1+_curPage;
+    [_imageViews removeAllObjects];
+    [_imageViews addObject:v.strOriginalImg];
+    [self.focusManager installOnViews:_imageViews];
+    [v setData];
+    [_scrollView addSubview:v];
+    _pageChanging=NO;
+}
+- (NSInteger)beyondBounds:(NSInteger)index
+{
+    NSInteger i;
+    if (index==0) {
+        i=0;
+    }
+    else if(index==10){
+        i=2;
+    }
+    else{
+        i=1;
+    }
+    return i;
+}
+-(void) reloadView
+{
+//    NSLog(@"%d",_curPage);
+    if (_pageChanging) {
+        NSInteger i=[self beyondBounds:_oldPage];
+        Hp_C_View * v= (Hp_C_View *)[self.view viewWithTag:100+i];
+        [v removeFromSuperview];
+        i=[self beyondBounds:_curPage];
+        [self addView:i];
+    }
+    if ((_curPage!=0)&&(_curPage!=10)) {
+        [_scrollView  scrollRectToVisible:CGRectMake(_scrollView.frame.size.width, 0, _scrollView.frame.size.width, _scrollView.frame.size.height) animated:NO];
+    }
+    
+    [_scrollView reloadInputViews];
+
 }
 #pragma mark - UIScrollViewDelegate
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
@@ -178,7 +219,29 @@
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
 	
 	[_pullRightRefreshView egoRefreshScrollViewDidEndDragging:scrollView];
-	
+    
+    //	[self reloadView];
+}
+-(void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    if (scrollView.tag==188) {
+        _oldPage=_curPage;
+        if ((scrollView.contentOffset.x > 480)&&(_curPage<10)) {
+            _curPage++;
+            _pageChanging=YES;
+        }else if((scrollView.contentOffset.x < 160)&&(_curPage>0)){
+            _curPage--;
+            _pageChanging=YES;
+        }else if ((_curPage==0)&&(scrollView.contentOffset.x>=320)){
+            _curPage++;
+            _pageChanging=YES;
+        }else if((_curPage==10)&&(scrollView.contentOffset.x<=320)){
+            _curPage--;
+            _pageChanging=YES;
+        }
+        [self reloadView];
+    }
+
 }
 #pragma mark Data Source Loading / Reloading Methods
 
@@ -205,16 +268,16 @@
     _fromDataRequest.delegate=self;
 //    [_fromDataRequest startAsynchronous];
 }
--(void) reloadAllView
-{
-//    NSLog(@"%d---%@",_scrollView.subviews.count,_scrollView.subviews[10] );
-    for (int i = 0; i<10; i++) {
-        Hp_C_View * v= (Hp_C_View *)[self.view viewWithTag:100+i];
-        v.row=i+1;
-//        v.strHpId=_lstHp[i];
-        [v setData];
-    }
-}
+//-(void) reloadAllView
+//{
+////    NSLog(@"%d---%@",_scrollView.subviews.count,_scrollView.subviews[10] );
+//    for (int i = 0; i<10; i++) {
+//        Hp_C_View * v= (Hp_C_View *)[self.view viewWithTag:100+i];
+//        v.row=i+1;
+////        v.strHpId=_lstHp[i];
+//        [v setData];
+//    }
+//}
 -(void) rightBarButton
 {
     [self showShareView:self isFollow:NO];
@@ -225,7 +288,7 @@
 {
     [UIView animateWithDuration:0.2 animations:^{
         self.navigationController.navigationBar.frame=CGRectMake(0, -24, 320, 44);
-        self.scrollView.frame=CGRectMake(0, -44, 320, 480);
+        self.scrollView.frame=CGRectMake(0, -44, self.scrollView.frame.size.width,self.scrollView.frame.size.height);
         self.navigationItem.titleView.alpha=0;
     } completion:^(BOOL finished) {
         [self.tabBarController.tabBar setHidden:YES];
@@ -235,7 +298,7 @@
 {
     [UIView animateWithDuration:0.2 animations:^{
         self.navigationController.navigationBar.frame=CGRectMake(0, 20, 320, 44);
-        self.scrollView.frame=CGRectMake(0,0, 320, 480);
+        self.scrollView.frame=CGRectMake(0, 0, self.scrollView.frame.size.width,self.scrollView.frame.size.height);
         self.navigationItem.titleView.alpha=1;
     } completion:^(BOOL finished) {
         [self.tabBarController.tabBar setHidden:NO];
@@ -253,10 +316,14 @@
         [WeiboSDK sendRequest:request];
     }
     else {
-        int currentpage=(_scrollView.contentOffset.x+160)/320;
-        Hp_C_View * v=(Hp_C_View*)[self.view viewWithTag:100+currentpage];
         
-        NSString * shareStr=[NSString stringWithFormat:@"%@ %@ %@",v.strContent.text,v.strAuthor.text,v.sWebLK];
+        int currentpage = [self beyondBounds:_curPage];
+
+        Hp_C_View * v=(Hp_C_View*)[self.view viewWithTag:100+currentpage];
+        _simple=[DataBaseSimple sharedDataBase];
+        HpModel * mod =[_simple getFromDataBaseFromTableName:@"all_homepage" withMarketTime:v.selfTime];
+        NSString * shareStr=[NSString stringWithFormat:@"%@ 【%@】 %@",mod.content,mod.author,mod.sWebLk];
+//                             v.strContent.text,v.strAuthor.text,v.sWebLK];
         [WBHttpRequest requestWithAccessToken:[userInfo objectForKey:@"access_token"]
                                           url:@"https://upload.api.weibo.com/2/statuses/upload.json"
                                    httpMethod:@"POST"
@@ -275,7 +342,7 @@
 #pragma mark - DouBan
 -(void) douban
 {
-    int currentpage=(_scrollView.contentOffset.x+160)/320;
+    int currentpage = [self beyondBounds:_curPage];
     Hp_C_View * v=(Hp_C_View*)[self.view viewWithTag:100+currentpage];
     DOUOAuthStore *store = [DOUOAuthStore sharedInstance];
     DOUService * service = [DOUService sharedInstance];
@@ -398,7 +465,7 @@
 -(void) saveButton
 {
 //    _simple=[DataBaseSimple sharedDataBase];
-    int currentpage=(_scrollView.contentOffset.x+160)/320;
+    int currentpage=[self beyondBounds:_curPage];
     Hp_C_View * v=(Hp_C_View*)[self.view viewWithTag:100+currentpage];
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum]) {
         UIImageWriteToSavedPhotosAlbum(v.strOriginalImg.image, self, @selector(image:didFinishSavingWithError:contextInfo:),nil);

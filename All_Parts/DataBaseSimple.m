@@ -27,8 +27,10 @@ static DataBaseSimple * simple = nil;
 
 + (DataBaseSimple *)sharedDataBase
 {
+    @synchronized(self){
     if (simple == nil) {
         simple = [[DataBaseSimple alloc] init];
+    }
     }
     return simple;
 }

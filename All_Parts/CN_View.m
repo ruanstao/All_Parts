@@ -40,6 +40,7 @@
         // Initialization code
         _hud=[[MBProgressHUD alloc] initWithView:self];
         _hud.delegate=self;
+        _hud.minShowTime=2;
         _hud.labelText=@"努力的加载中……";
         _hud.center =CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
         [self addSubview:_hud];
@@ -208,7 +209,6 @@
 //          maxRow*oneTextSize.height);
 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     int totalPages = 0;
-    int currentPage = 0;
     
         // 计算文本串的大小尺寸
     CGSize totalTextSize = [text sizeWithFont:_content.font
@@ -265,12 +265,20 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                     range.length = [pageText length];
                     break;
                 } else {
-                    range.length-=20;
-                    CGSize sss=[[text substringWithRange:range] sizeWithFont:_content.font constrainedToSize:CGSizeMake(_content.frame.size.width, MAXFLOAT)
-                lineBreakMode:NSLineBreakByCharWrapping];
-                    if (sss.height<=_content.frame.size.height) {
-                        range.length+=20;
-                    }
+//                    range.length-=200;
+//                    CGSize sss=[[text substringWithRange:range] sizeWithFont:_content.font constrainedToSize:CGSizeMake(_content.frame.size.width, MAXFLOAT)
+//                                                               lineBreakMode:NSLineBreakByCharWrapping];
+//                    if (sss.height<=_content.frame.size.height) {
+//                        range.length+=200;
+//                    }
+//                    else{
+                        range.length-=20;
+                        CGSize sss=[[text substringWithRange:range] sizeWithFont:_content.font constrainedToSize:CGSizeMake(_content.frame.size.width, MAXFLOAT)
+                                lineBreakMode:NSLineBreakByCharWrapping];
+                        if (sss.height<=_content.frame.size.height) {
+                            range.length+=20;
+                        }
+//                    }
                     range.length -= 2;
                 }
             }

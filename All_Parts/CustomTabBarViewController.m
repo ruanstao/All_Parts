@@ -81,10 +81,20 @@
 - (void)setSelectedIndex:(NSUInteger)selectedIndex {
     [super setSelectedIndex:selectedIndex];
     //将上次的选中效果取消
+    CATransition * animation=[CATransition animation];
+    animation.duration=0.5;
+    animation.type=kCATransitionPush;
+    if ((int)(_lastSelectedIndex-selectedIndex)<0) {
+        animation.subtype=kCATransitionFromRight;
+    }else{
+        animation.subtype=kCATransitionFromLeft;
+    }
+    [self.view.layer addAnimation:animation forKey:nil];
     self.lastSelectedIndex = selectedIndex;
     //将本次的选中效果显示
     UIImageView *selectedImageView = (UIImageView *)[_itemBgImageViewArray objectAtIndex:selectedIndex];
     selectedImageView.image = [_selectedImageArray objectAtIndex:selectedIndex];
+
     
 }
 
@@ -178,6 +188,7 @@
 
 #pragma mark - UITabBarDelegate
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item {
+
     self.selectedIndex = [tabBar.items indexOfObject:item];
 }
 

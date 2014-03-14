@@ -20,6 +20,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *strContent;
 @property (weak, nonatomic) IBOutlet UILabel *strAuthor;
 @property (strong, nonatomic) NSString * sWebLK;
+@property (nonatomic,strong) NSString * selfTime;
 -(void) setData;
 @end
 //    "result": "SUCCESS",

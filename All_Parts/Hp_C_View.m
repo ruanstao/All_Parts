@@ -38,6 +38,7 @@
     if (self) {
         _hud = [[MBProgressHUD alloc] initWithView:self];
         _hud.delegate =self;
+        _hud.minShowTime=2;
         _hud.labelText = @"努力的加载中...";
         _hud.center =CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
         [self addSubview:_hud];
@@ -69,6 +70,7 @@
 {
     NSDateFormatter * formatter=[[NSDateFormatter alloc]init];
     [formatter setDateFormat:@"yyyy-MM-dd"];
+    _selfTime=str;
     NSDate * old=[formatter dateFromString:str];
 //    NSLog(@"%@",old);
     NSDateFormatter * d=[[NSDateFormatter alloc] init];

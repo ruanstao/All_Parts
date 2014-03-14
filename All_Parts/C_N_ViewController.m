@@ -34,6 +34,9 @@
     BOOL _reloading;
     ASIHTTPRequest * _request;
     DataBaseSimple * _simple;
+    NSInteger _curPage;
+    NSInteger _oldPage;
+    BOOL _pageChanging;
 }
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -45,22 +48,13 @@
 }
 - (void)creatScrollView
 {
-    int pagewide = self.refreshScrollView.bounds.size.width;
-    int height = self.refreshScrollView.bounds.size.height;
+    int pagewide = [UIScreen mainScreen].bounds.size.width;
+    int height = [UIScreen mainScreen].bounds.size.height;
     [_refreshScrollView setScrollEnabled:YES];
-    _refreshScrollView.contentSize = CGSizeMake(pagewide*10,height);
-    for (int i=0;i<10; i++) {
-        CN_View * v  =[[[NSBundle mainBundle] loadNibNamed:@"CN_View" owner:Nil options:nil] lastObject];
-        v.frame=CGRectMake(320*i, 0, _refreshScrollView.bounds.size.width, _refreshScrollView.bounds.size.height);
-        v.tag=100+i;
-        v.row=i+1;
-        v.scrollView.delegate = (id)_scrollProxy;
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [v setData];
-        });
-        [_refreshScrollView addSubview:v];
-        
-    }
+    _refreshScrollView.contentSize = CGSizeMake(pagewide*3,height);
+    _refreshScrollView.tag=288;
+    _curPage=0;
+    [self addView:_curPage];
     
     [_refreshScrollView setShowsVerticalScrollIndicator:NO];
     [_refreshScrollView setShowsHorizontalScrollIndicator:NO];
@@ -89,7 +83,7 @@
 ////        self.navigationController.toolbar.barStyle = UIBarStyleBlackTranslucent;
 //    }
     if (_pullRightRefreshView == nil) {
-		EGORefreshTableHeaderView * view = [[EGORefreshTableHeaderView alloc] initWithFrame:CGRectMake(0.0f-self.refreshScrollView.bounds.size.width, 0.0f, self.refreshScrollView.frame.size.width, self.refreshScrollView.bounds.size.height)];
+		EGORefreshTableHeaderView * view = [[EGORefreshTableHeaderView alloc] initWithFrame:CGRectMake(0.0f-[UIScreen mainScreen].bounds.size.width, 0.0f, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height)];
         view.delegate = self;
         [self.refreshScrollView addSubview:view];
         _pullRightRefreshView=view;
@@ -136,7 +130,7 @@
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view{
 	
 	[self reloadTableViewDataSource];
-    [self reloadAllView];
+    [self reloadView];
     [self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:2.0];
 	
 }
@@ -153,6 +147,54 @@
 	return [NSDate date]; // should return date data source was last changed
 	
 }
+#pragma mark - ScrollView Method
+-(void) reloadView
+{
+//    NSLog(@"%d",_curPage);
+    if (_pageChanging) {
+        NSInteger i= [self beyondBounds:_oldPage];
+        
+        CN_View * v= (CN_View *)[self.view viewWithTag:100+i];
+            [v removeFromSuperview];
+        
+        i=[self beyondBounds:_curPage];
+        [self addView:i];
+    }
+    if ((_curPage!=0)&&(_curPage!=10)) {
+        [_refreshScrollView  scrollRectToVisible:CGRectMake(_refreshScrollView.frame.size.width, 0, _refreshScrollView.frame.size.width, _refreshScrollView.frame.size.height) animated:NO];
+
+    }
+    
+//    [_refreshScrollView reloadInputViews];
+    
+}
+-(void) addView:(NSInteger ) index
+{
+    CN_View * v  =[[[NSBundle mainBundle] loadNibNamed:@"CN_View" owner:Nil options:nil] lastObject];
+    v.frame=CGRectMake(320*index, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+    v.tag=100+index;
+    v.scrollView.delegate = (id)_scrollProxy;
+    v.row=1+_curPage;
+    [v setData];
+    [_refreshScrollView addSubview:v];
+    _pageChanging=NO;
+
+}
+- (NSInteger)beyondBounds:(NSInteger)index
+{
+    NSInteger i;
+    if (index==0) {
+        i=0;
+    }
+    else if(index==10){
+        i=2;
+    }
+    else{
+        i=1;
+    }
+    return i;
+}
+
 #pragma mark - UIScrollViewDelegate
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
 	
@@ -170,6 +212,30 @@
 	
 	[_pullRightRefreshView egoRefreshScrollViewDidEndDragging:scrollView];
 	
+}
+-(void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    if (scrollView.tag==288) {
+        if ((scrollView.contentOffset.x > 480)&&(_curPage<10)) {
+            _oldPage=_curPage;
+            _curPage++;
+            _pageChanging=YES;
+        }else if((scrollView.contentOffset.x < 160)&&(_curPage>0)){
+             _oldPage=_curPage;
+            _curPage--;
+            _pageChanging=YES;
+        }else if ((_curPage==0)&&(scrollView.contentOffset.x>=320)){
+             _oldPage=_curPage;
+            _curPage++;
+            _pageChanging=YES;
+        }else if((_curPage==10)&&(scrollView.contentOffset.x<=320)){
+             _oldPage=_curPage;
+            _curPage--;
+            _pageChanging=YES;
+        }
+        [self reloadView];
+    }
+    
 }
 #pragma mark Data Source Loading / Reloading Methods
 
@@ -227,14 +293,14 @@
     [self showTabBar:YES];
 }
 #pragma mark - My Method
--(void) reloadAllView
-{
-    //    NSLog(@"%d---%@",_scrollView.subviews.count,_scrollView.subviews[10] );
-    for (int i = 0; i<10; i++) {
-        CN_View * v= (CN_View *)[self.view viewWithTag:100+i];
-        [v setData];
-    }
-}
+//-(void) reloadAllView
+//{
+//    //    NSLog(@"%d---%@",_scrollView.subviews.count,_scrollView.subviews[10] );
+//    for (int i = 0; i<10; i++) {
+//        CN_View * v= (CN_View *)[self.view viewWithTag:100+i];
+//        [v setData];
+//    }
+//}
 -(void) rightBarButton
 {
     [self showShareView:self isFollow:NO];
@@ -245,7 +311,7 @@
     [self scrollFullScreen:nil scrollViewDidScrollUp:-44];
     [UIView animateWithDuration:0.2 animations:^{
 //        self.navigationController.navigationBar.frame=CGRectMake(0, -44, 320, 44);
-        self.refreshScrollView.frame=CGRectMake(0, -44, 320, self.refreshScrollView.frame.size.height);
+        self.refreshScrollView.frame=CGRectMake(0, -44, self.refreshScrollView.frame.size.width, self.refreshScrollView.frame.size.height);
     } completion:^(BOOL finished) {
 //        [self.tabBarController.tabBar setHidden:YES];
     }];
@@ -255,7 +321,7 @@
     [self scrollFullScreen:nil scrollViewDidScrollDown:44];
     [UIView animateWithDuration:0.2 animations:^{
 //        self.navigationController.navigationBar.frame=CGRectMake(0, 20, 320, 44);
-        self.refreshScrollView.frame=CGRectMake(0,0, 320, self.refreshScrollView.frame.size.height);
+        self.refreshScrollView.frame=CGRectMake(0,0, self.refreshScrollView.frame.size.width, self.refreshScrollView.frame.size.height);
     } completion:^(BOOL finished) {
 //        [self.tabBarController.tabBar setHidden:NO];
     }];
@@ -287,8 +353,8 @@
         [self.shareView addSubview:sheetContentView];
         [self.shareView updateFollowStatus:follow];
         [self.shareView.FollowButton setTitle:@"收藏" forState:UIControlStateNormal];
-        self.shareView.FollowButtonNormal=@"已收藏";
-        self.shareView.FollowButtonSelect=@"已收藏";
+        self.shareView.FollowButtonNormal=@"收藏";
+        self.shareView.FollowButtonSelect=@"取消收藏";
         [self.shareView showInView:uiViewController.view];
     }
 }
@@ -351,16 +417,20 @@
 -(void) saveButton
 {
     _simple=[DataBaseSimple sharedDataBase];
-    int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
+    int currentpage=[self beyondBounds:_curPage];
     CN_View * v=(CN_View*)[self.view viewWithTag:100+currentpage];
-    NSMutableDictionary * dic=[NSMutableDictionary dictionary];
-    [dic setObject: v.contTitle.text forKey:@"title"];
-    [dic setObject: [_simple getDateForYestoday:(double)currentpage] forKey:@"markettime"];
-    [dic setObject: v.conId forKey:@"id"];
-    [dic setObject:@"all_content" forKey:@"tablename"];
-    [_simple insertDataForTableName:@"all_things" with:dic];
-
-
+    if ([self.shareView.FollowButton.titleLabel.text isEqualToString:@"收藏"])
+    {
+        [_simple deleteDataWithID:v.conId];
+    }
+    else{
+        NSMutableDictionary * dic=[NSMutableDictionary dictionary];
+        [dic setObject: v.contTitle.text forKey:@"title"];
+        [dic setObject: [_simple getDateForYestoday:(double)_curPage] forKey:@"markettime"];
+        [dic setObject: v.conId forKey:@"id"];
+        [dic setObject:@"all_content" forKey:@"tablename"];
+        [_simple insertDataForTableName:@"all_things" with:dic];
+    }
 
 }
 #pragma mark - SinaWeiBo
@@ -375,7 +445,7 @@
         [WeiboSDK sendRequest:request];
     }
     else {
-        int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
+        int currentpage=[self beyondBounds:_curPage];
         CN_View * v=(CN_View*)[self.view viewWithTag:100+currentpage];
         _simple=[DataBaseSimple sharedDataBase];
         CNModel * mod =[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:v.selfTime];
@@ -402,7 +472,7 @@
 #pragma mark - DouBan
 -(void) douban
 {
-    int currentpage=(_refreshScrollView.contentOffset.x+160)/320;
+    int currentpage=[self beyondBounds:_curPage];
     CN_View * v=(CN_View*)[self.view viewWithTag:100+currentpage];
     _simple=[DataBaseSimple sharedDataBase];
     CNModel * mod =[_simple getFromDataBaseFromTableName:@"all_content" withMarketTime:v.selfTime];

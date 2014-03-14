@@ -10,10 +10,12 @@
 #import "CustomTabBarViewController.h"
 #import "WeiboSDK.h"
 #import <libDoubanApiEngine/DOUService.h>
-@interface AppDelegate : UIResponder <UIApplicationDelegate,WeiboSDKDelegate,WBHttpRequestDelegate>
+
+@interface AppDelegate : UIResponder <UIApplicationDelegate,WeiboSDKDelegate,WBHttpRequestDelegate,UIScrollViewDelegate>
 
 //@property (strong, nonatomic) SinaWeibo * sinaweibo;
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) CustomTabBarViewController * root;
 @property (strong, nonatomic) NSString *wbtoken;
 @end
+
